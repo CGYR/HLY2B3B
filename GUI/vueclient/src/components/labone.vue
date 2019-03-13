@@ -31,14 +31,17 @@
             </el-input>
             </div>
             <div v-if="!upload_or_enter_set" align="center">
+              <!-- 部署到服务器上时，action可能需要修改 -->
               <el-upload
                 class="upload-demo"
                 drag
-                action="https://jsonplaceholder.typicode.com/posts/"
+                action="http://localhost:3000/labone/file_upload"
+                methods="post"
+                :limit="1"
                 multiple>
                 <i class="el-icon-upload"></i>
                 <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                <div class="el-upload__tip" slot="tip">请不要上传太大的文件</div>
+                <div class="el-upload__tip" slot="tip">请不要上传太大的文件,一次只允许上传一个文件</div>
               </el-upload>
             </div>
           </el-col>
