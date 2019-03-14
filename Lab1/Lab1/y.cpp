@@ -33,9 +33,30 @@ bool gen(string path) {
 	int i = 0;
 	int rank = 0;
 	int len = 0;
+	bool reaptFlag = false;
+	WordNode* nodeTmp = NULL;
 	while (charTmp!='\0') {
 		if (charTmp < 97 || charTmp > 122) {
 			if (wordTmp != "" && len >1) {
+				for (int j = 0; j < 26; j++) {
+					nodeTmp = wordList[j];
+					while (nodeTmp->word != "") {
+						if (wordTmp == wordList[j]->word) {
+							reaptFlag = true;
+							break;
+						}
+						nodeTmp = nodeTmp->next;
+					}
+					if (reaptFlag) break;
+				}
+				nodeTmp = NULL;
+				if (reaptFlag) {
+					reaptFlag = false;
+					wordTmp = "";
+					len = 0;
+					charTmp = wordIn[++i];
+					continue;
+				}
 				WordNode *Node = new WordNode(wordTmp);
 				rank = wordTmp[0] - 97;
 				Node->next = wordList[rank];
@@ -112,10 +133,60 @@ void writeResult(int mode) {
 	outfile.close();
 }
 
+void hSearch() {
+	WordNode* Tmp;
+	for (int i = 0; i < 26; i++) {
+		Tmp = wordList[i];
+		while(Tmp->word!=""){
+			nowLen++;
+			nowList = new WordNode(Tmp->word);
+			nowNode = nowList;
+			Tmp->uFlag = true;
+			fSearch(Tmp->tail);
+			Tmp->uFlag = false;
+			Tmp = Tmp->next;
+		}
+	}
+}
 
+void fSearch(int rank) {
+	WordNode* Tmp = wordList[rank];
+	while (Tmp->word != "") {
+		if (Tmp->uFlag == true) {
+			Tmp = Tmp->next;
+			continue;
+		}
+		break;
+	}
+	if (Tmp->word == "") {
+		if (nowLen > maxLen) {
+			maxLen = nowLen;
+			maxList = nowList;
+		}
+		nowLen = 0;
+		/*Tmp = nowList->next;
+		WordNode* Tnext;
+		while (Tmp != NULL) {
+			Tnext = Tmp->next;
+			delete Tmp;
+			Tmp = Tnext;
+		}*/
+		nowList = NULL;
+		return;
+	}
+	Tmp->uFlag = true;
+	WordNode *newNode = new WordNode(Tmp->word);
+	nowNode->next = newNode;
+	nowNode = newNode;
+	nowLen++;
+	fSearch(nowNode->tail);
+	Tmp->uFlag = false;
+}
 
 int main(int argc, char* argv[]) {
 	gen("F://google/test.txt");
+	hSearch();
+	writeResult(1);
 	while (true)
 	{
 
