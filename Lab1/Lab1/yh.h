@@ -52,9 +52,15 @@ WordNode* nowNode = NULL;
 int nowLen;
 int nNum;//-n对应的找到的单词的数目
 int nSet;//-n对应的n值
+bool wSet;
+bool cSet;
+string hSet;
+string tSet;
+string inputFileName;
 
 void writeResult(int mode);
 void writeError(int errorCode);
 bool gen(string path);
 void fSearch(int rank);
 void hSearch();
+void parseCommandLineEnter(int argc, char* argv[]);

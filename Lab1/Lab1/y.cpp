@@ -64,7 +64,10 @@ bool gen(string path) {
 				wordTmp = "";
 				len = 0;
 			}
-			else{}
+			else if( len<=1 ){
+				wordTmp = "";
+				len = 0;
+			}
 		}
 		else {
 			wordTmp += charTmp;
@@ -115,7 +118,7 @@ void writeError(int errorCode) {
 		exit(0);
 	}
 	case 2: {
-		printf("错误2\n");
+		printf("命令行参数错误\n");
 		outfile << "-2" << endl;
 		exit(0);
 	}
@@ -158,6 +161,83 @@ void writeResult(int mode) {
 	outfile.close();
 }
 
+void parseCommandLineEnter(int argc, char* argv[]) {
+	// 先判断首位输入是否正确 注意，尾部不需要
+	/* 这里先注释掉 最后消除注释
+	if(stricmp("Wordlist.exe",argv[0])){
+	// 设置错误输出
+	writeError(2);
+	}*/
+	// 设置输入文件名称
+	inputFileName = argv[argc - 1];
+	// 先初始化参数
+	nNum = 0;
+	nSet = 0;
+	wSet = false;
+	cSet = false;
+	hSet = "";
+	tSet = "";
+	for (int i = 1; i<argc - 1;) {
+		printf("%s\n", argv[i]);
+		if (!stricmp("-w", argv[i])) {
+			if (wSet) {
+				// 报错
+				writeError(2);
+			}
+			printf("wSet!\n");
+			wSet = true;
+			++i;
+		}
+		else if (!stricmp("-c", argv[i])) {
+			if (cSet) {
+				// 报错
+				writeError(2);
+			}
+			printf("cSet!\n");
+			cSet = true;
+			++i;
+		}
+		else if (!stricmp("-h", argv[i])) {
+			if (hSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
+				// 报错
+				writeError(2);
+			}
+			printf("hSet! and hSet is %s\n", argv[i + 1]);
+			hSet = argv[i + 1];
+			i += 2;
+		}
+		else if (!stricmp("-t", argv[i])) {
+			if (tSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
+				// 报错
+				writeError(2);
+			}
+			printf("tSet! and tSet is %s\n", argv[i + 1]);
+			tSet = argv[i + 1];
+			i += 2;
+		}
+		else if (!stricmp("-n", argv[i])) {
+			if (nSet>0 && (argv[i + 1][0] < 49 || argv[i + 1][0] > 57)) {
+				// 报错
+				writeError(2);
+			}
+			printf("nSet! and nSet is %d\n", argv[i + 1][0] - 48);
+			nSet = argv[i + 1][0] - 48;
+			i += 2;
+		}
+		else {
+			// 出现不符合命令参数的参数，报错
+			writeError(2);
+			++i;
+		}
+		// 非法命令组合错误
+		if ((wSet && cSet) || (wSet && nSet != 0) || (cSet && nSet != 0)) {
+			// 错误
+			writeError(2);
+		}
+	}
+}
+
+
 void hSearch() {
 	WordNode* Tmp;
 	for (int i = 0; i < 26; i++) {
@@ -170,42 +250,63 @@ void hSearch() {
 			fSearch(Tmp->tail);
 			Tmp->uFlag = false;
 			Tmp = Tmp->next;
+			nowLen=0;
 		}
 	}
 }
 
 void fSearch(int rank) {
 	WordNode* Tmp = wordList[rank];
-	while (Tmp->word != "") {
+	while ( Tmp->word != "") {
 		if (Tmp->uFlag == true) {
 			Tmp = Tmp->next;
 			continue;
 		}
-		break;
+		Tmp->uFlag = true;
+		WordNode *newNode = new WordNode(Tmp->word);
+		nowNode->next = newNode;
+		nowNode = newNode;
+		nowLen++;
+		fSearch(nowNode->tail);
+		Tmp->uFlag = false;
+		Tmp = Tmp->next;
 	}
 	if (Tmp->word == "") {
 		if (nowLen > maxLen) {
 			maxLen = nowLen;
-			maxList = nowList;
+			Tmp = nowList;
+			WordNode *maxNode = new WordNode(Tmp->word);
+			maxList = maxNode;
+			Tmp = Tmp->next;
+			while (Tmp != NULL) {
+				WordNode *newNode = new WordNode(Tmp->word);
+				maxNode->next = newNode;
+				maxNode = newNode;
+				Tmp = Tmp->next;
+			}
+			return;
 		}
-		nowLen = 0;
+		nowLen--;
 		/*Tmp = nowList->next;
 		WordNode* Tnext;
 		while (Tmp != NULL) {
-			Tnext = Tmp->next;
-			delete Tmp;
-			Tmp = Tnext;
+		Tnext = Tmp->next;
+		delete Tmp;
+		Tmp = Tnext;
 		}*/
-		nowList = NULL;
+		Tmp = nowList;
+		if (Tmp == NULL) return;
+		if (Tmp->next == NULL) nowList = NULL;
+		else {
+			while (Tmp->next->next != NULL)
+			{
+				Tmp = Tmp->next;
+			}
+			Tmp->next = NULL;
+			nowNode = Tmp;
+		}
 		return;
 	}
-	Tmp->uFlag = true;
-	WordNode *newNode = new WordNode(Tmp->word);
-	nowNode->next = newNode;
-	nowNode = newNode;
-	nowLen++;
-	fSearch(nowNode->tail);
-	Tmp->uFlag = false;
 }
 
 int main(int argc, char* argv[]) {
