@@ -1,2 +1,4 @@
-﻿  Lab1.vcxproj -> F:\HLY2B3B\Lab1\Debug\Lab1.exe
+﻿  y.cpp
+f:\hly2b3b\lab1\lab1\y.cpp(501): warning C4390: “;”: 找到空的受控语句；这是否是有意的?
+  Lab1.vcxproj -> F:\HLY2B3B\Lab1\Debug\Lab1.exe
   Lab1.vcxproj -> F:\HLY2B3B\Lab1\Debug\Lab1.pdb (Full PDB)

@@ -15,6 +15,7 @@ bool gen(string path);
 */
 
 bool gen(string path) {
+	if (nSet > 0) nFlag = true;
 	for (int i = 0; i < 26; i++) {
 		wordList[i] = new WordNode();
 	}
@@ -175,10 +176,13 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 	nSet = 0;
 	hSet = "";
 	tSet = "";
+	for (int i=0;i<argc;++i) {
+		printf("%s\n",argv[i]);
+	}
 	for (int i = 1; i<argc - 1;) {
 		printf("%s\n", argv[i]);
 		if (!stricmp("-w", argv[i])) {
-			if (wcFlag) {
+			if (!wcFlag) {
 				// ±¨´í
 				writeError(2);
 			}
@@ -187,7 +191,7 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			++i;
 		}
 		else if (!stricmp("-c", argv[i])) {
-			if (!wcFlag) {
+			if (wcFlag) {
 				// ±¨´í
 				writeError(2);
 			}
@@ -234,7 +238,6 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 		}*/
 	}
 }
-
 
 void hSearch() {
 	WordNode* Tmp;
@@ -477,7 +480,7 @@ void nSearch(int rank) {
 			nListNum++;
 			
 			WordNode *Tmpp = nowList;
-			WordNode *newNode = new WordNode(Tmp->word);
+			WordNode *newNode = new WordNode(Tmpp->word);
 			if (maxNode == NULL) {
 				maxNode = newNode;
 				maxList = maxNode;
@@ -495,7 +498,7 @@ void nSearch(int rank) {
 			}
 			
 			Tmpp = nowList;
-			if (Tmpp == NULL) return;
+			if (Tmpp == NULL) ;
 			if (Tmpp->next == NULL) nowList = NULL;
 			else {
 				while (Tmpp->next->next != NULL)
@@ -505,13 +508,13 @@ void nSearch(int rank) {
 				Tmpp->next = NULL;
 				nowNode = Tmpp;
 			}
-			return;
 		}
 		
 		else nSearch(nowNode->tail);
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
+
 	if (Tmp->word == "") {
 		if (!tSet.empty()) {
 			bool tailFlag = false;
@@ -590,8 +593,11 @@ void nSearch(int rank) {
 }
 
 
+
 int main(int argc, char* argv[]) {
-	gen("F://google/test.txt");
+	parseCommandLineEnter(argc, argv);
+	gen(inputFileName);
 	hSearch();
-	writeResult(1);
+	if (nFlag) writeResult(2);
+	else writeResult(1);
 }
