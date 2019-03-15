@@ -41,7 +41,7 @@ bool gen(string path) {
 				for (int j = 0; j < 26; j++) {
 					nodeTmp = wordList[j];
 					while (nodeTmp->word != "") {
-						if (wordTmp == wordList[j]->word) {
+						if (wordTmp == nodeTmp->word) {
 							reaptFlag = true;
 							break;
 						}
@@ -72,6 +72,31 @@ bool gen(string path) {
 		}
 		charTmp = wordIn[++i];
 	}
+
+	if (charTmp == '\0') {
+		if (wordTmp != "" && len >1) {
+			for (int j = 0; j < 26; j++) {
+				nodeTmp = wordList[j];
+				while (nodeTmp->word != "") {
+					if (wordTmp == nodeTmp->word) {
+						reaptFlag = true;
+						break;
+					}
+					nodeTmp = nodeTmp->next;
+				}
+				if (reaptFlag) break;
+			}
+			nodeTmp = NULL;
+			if (reaptFlag) {
+				return true;
+			}
+			WordNode *Node = new WordNode(wordTmp);
+			rank = wordTmp[0] - 97;
+			Node->next = wordList[rank];
+			wordList[rank] = Node;
+		}
+	}
+
 	return true;
 }
 
@@ -187,8 +212,4 @@ int main(int argc, char* argv[]) {
 	gen("F://google/test.txt");
 	hSearch();
 	writeResult(1);
-	while (true)
-	{
-
-	}
 }
