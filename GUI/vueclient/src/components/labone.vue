@@ -59,7 +59,6 @@
         </el-row>
         </div>
       </el-card>
-      <div style="height:2px"></div>
       <el-card>
         <el-row>
           选择输入参数
@@ -70,7 +69,9 @@
             <el-switch
               v-model="w_set"
               active-color="#13ce66"
-              inactive-color="#ff4949">
+              inactive-color="#ff4949"
+              :change="sayHellotest"
+              >
             </el-switch>
           </el-col>
           <el-col :span="4">
@@ -175,8 +176,54 @@
           wordoutput: '',
         }
       },
+      watch:{
+        w_set: function(){
+          if(this.c_set || this.n_set){
+            this.w_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        },
+        c_set: function(){
+          if(this.w_set || this.n_set){
+            this.c_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        },
+        n_set: function(){
+          if(this.w_set || this.c_set){
+            this.n_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        }
+      },
       methods: {
+        showError(words){
+          this.$message({
+            message: words,
+            type: 'warning',
+            showClose: true,
+            duration:2000,
+          })
+        },
         executeWordlist(){
+          // 防止
+          if(!this.c_set && !this.w_set && !this.n_set){
+            // 报错 至少需要设置一个
+            this.showError("-w -c -n至少设置一个")
+            return;
+          }else if( this.h_set && this.h_input == ""){
+            // 报错
+            this.showError("-h 参数没有设置输入的字母")
+            return;
+          }else if( this.t_set && this.t_input == ""){
+            // 报错
+            this.showError("-t 参数没有设置输入的字母")
+            return;
+          }else if( this.n_set && this.n_input == ""){
+            // 报错
+            this.showError("-n 参数没有设置输入的数字")
+            return;
+          }
           console.log("bengin executeWordlist")
           var _this = this;
           this.$reqs.post("/labone/labone_executeWorldlist",{
@@ -205,7 +252,9 @@
             console.log("发送执行信息失败")
           });
         },
-
+        sayHellotest(){
+          console.log("hellow");
+        }
       },
     }
 </script>
