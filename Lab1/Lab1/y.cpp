@@ -140,7 +140,7 @@ void writeResult(int mode) {
 	else if (mode == 2) {
 		WordNode* nextNode = maxList;
 		int count = 1;
-		result += to_string(nNum) + "\n";
+		result += to_string(nListNum) + "\n";
 		while (nextNode != NULL) {
 			if (count != 1 && count%nSet == 0) {
 				result = result + nextNode->word + "\n\n";
@@ -171,30 +171,28 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 	// 设置输入文件名称
 	inputFileName = argv[argc - 1];
 	// 先初始化参数
-	nNum = 0;
+	nListNum = 0;
 	nSet = 0;
-	wSet = false;
-	cSet = false;
 	hSet = "";
 	tSet = "";
 	for (int i = 1; i<argc - 1;) {
 		printf("%s\n", argv[i]);
 		if (!stricmp("-w", argv[i])) {
-			if (wSet) {
+			if (wcFlag) {
 				// 报错
 				writeError(2);
 			}
 			printf("wSet!\n");
-			wSet = true;
+			wcFlag = true;
 			++i;
 		}
 		else if (!stricmp("-c", argv[i])) {
-			if (cSet) {
+			if (!wcFlag) {
 				// 报错
 				writeError(2);
 			}
 			printf("cSet!\n");
-			cSet = true;
+			wcFlag = false;
 			++i;
 		}
 		else if (!stricmp("-h", argv[i])) {
@@ -230,29 +228,56 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			++i;
 		}
 		// 非法命令组合错误
-		if ((wSet && cSet) || (wSet && nSet != 0) || (cSet && nSet != 0)) {
+		/*if ((wSet && cSet) || (wSet && nSet != 0) || (cSet && nSet != 0)) {
 			// 错误
 			writeError(2);
-		}
+		}*/
 	}
 }
 
 
 void hSearch() {
 	WordNode* Tmp;
-	for (int i = 0; i < 26; i++) {
-		Tmp = wordList[i];
-		while(Tmp->word!=""){
-			nowLen++;
-			nowNum += Tmp->len;
-			nowList = new WordNode(Tmp->word);
-			nowNode = nowList;
-			Tmp->uFlag = true;
-			fSearch(Tmp->tail);
-			Tmp->uFlag = false;
-			Tmp = Tmp->next;
-			nowLen = 0;
-			nowNum = 0;
+	if (!tSet.empty()) {
+		sort(tSet.begin(), tSet.end());
+		tSet.erase(unique(tSet.begin(), tSet.end()), tSet.end());//tSet去重字符
+	}
+
+	if (hSet.empty()) {
+		for (int i = 0; i < 26; i++) {
+			Tmp = wordList[i];
+			while (Tmp->word != "") {
+				nowLen++;
+				nowNum += Tmp->len;
+				nowList = new WordNode(Tmp->word);
+				nowNode = nowList;
+				Tmp->uFlag = true;
+				fSearch(Tmp->tail);
+				Tmp->uFlag = false;
+				Tmp = Tmp->next;
+				nowLen = 0;
+				nowNum = 0;
+			}
+		}
+	}
+	else {
+		sort(hSet.begin(), hSet.end());
+		hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
+		for (unsigned int i = 0; i < hSet.length(); i++) {
+			int num = hSet[i] - 97;
+			Tmp = wordList[num];
+			while (Tmp->word != "") {
+				nowLen++;
+				nowNum += Tmp->len;
+				nowList = new WordNode(Tmp->word);
+				nowNode = nowList;
+				Tmp->uFlag = true;
+				fSearch(Tmp->tail);
+				Tmp->uFlag = false;
+				Tmp = Tmp->next;
+				nowLen = 0;
+				nowNum = 0;
+			}
 		}
 	}
 }
@@ -275,6 +300,31 @@ void fSearch(int rank) {
 		Tmp = Tmp->next;
 	}
 	if (Tmp->word == "") {
+		if (!tSet.empty()) {
+			bool tailFlag = false;
+			for (unsigned int i = 0; i < tSet.length(); i++) {
+				if (nowNode->tail == tSet[i] - 97) {
+					tailFlag = true;
+					break;
+				}
+			}
+			if (!tailFlag) {
+				nowLen--;
+				Tmp = nowList;
+				if (Tmp == NULL) return;
+				if (Tmp->next == NULL) nowList = NULL;
+				else {
+					while (Tmp->next->next != NULL)
+					{
+						Tmp = Tmp->next;
+					}
+					nowNum -= Tmp->next->len;
+					Tmp->next = NULL;
+					nowNode = Tmp;
+				}
+				return;
+			}
+		}
 		if ((nowLen > maxLen) && wcFlag) {
 			maxLen = nowLen;
 			Tmp = nowList;
@@ -303,7 +353,7 @@ void fSearch(int rank) {
 			}
 			return;
 		}
-		if ((nowNum > maxNum) && !wcFlag) {
+		else if ((nowNum > maxNum) && !wcFlag) {
 			maxNum = nowNum;
 			Tmp = nowList;
 			WordNode *maxNode = new WordNode(Tmp->word);
@@ -315,6 +365,7 @@ void fSearch(int rank) {
 				maxNode = newNode;
 				Tmp = Tmp->next;
 			}
+			nowLen--;
 			Tmp = nowList;
 			if (Tmp == NULL) return;
 			if (Tmp->next == NULL) nowList = NULL;
@@ -329,22 +380,145 @@ void fSearch(int rank) {
 			}
 			return;
 		}
-		nowLen--;
-		Tmp = nowList;
-		if (Tmp == NULL) return;
-		if (Tmp->next == NULL) nowList = NULL;
 		else {
-			while (Tmp->next->next != NULL)
-			{
-				Tmp = Tmp->next;
+			nowLen--;
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
 			}
-			nowNum -= Tmp->next->len;
-			Tmp->next = NULL;
-			nowNode = Tmp;
+			return;
 		}
-		return;
 	}
 }
+
+void nSearch(int rank) {
+	WordNode* Tmp = wordList[rank];
+	while (Tmp->word != "") {
+		if (Tmp->uFlag == true) {
+			Tmp = Tmp->next;
+			continue;
+		}
+		Tmp->uFlag = true;
+		WordNode *newNode = new WordNode(Tmp->word);
+		nowNode->next = newNode;
+		nowNode = newNode;
+		nowLen++;
+		if (nowLen == nSet) {
+
+		}
+		nowNum += newNode->len;
+		nSearch(nowNode->tail);
+		Tmp->uFlag = false;
+		Tmp = Tmp->next;
+	}
+	if (Tmp->word == "") {
+		if (!tSet.empty()) {
+			bool tailFlag = false;
+			for (unsigned int i = 0; i < tSet.length(); i++) {
+				if (nowNode->tail == tSet[i] - 97) {
+					tailFlag = true;
+					break;
+				}
+			}
+			if (!tailFlag) {
+				nowLen--;
+				Tmp = nowList;
+				if (Tmp == NULL) return;
+				if (Tmp->next == NULL) nowList = NULL;
+				else {
+					while (Tmp->next->next != NULL)
+					{
+						Tmp = Tmp->next;
+					}
+					nowNum -= Tmp->next->len;
+					Tmp->next = NULL;
+					nowNode = Tmp;
+				}
+				return;
+			}
+		}
+		if ((nowLen > maxLen) && wcFlag) {
+			maxLen = nowLen;
+			Tmp = nowList;
+			WordNode *maxNode = new WordNode(Tmp->word);
+			maxList = maxNode;
+			Tmp = Tmp->next;
+			while (Tmp != NULL) {
+				WordNode *newNode = new WordNode(Tmp->word);
+				maxNode->next = newNode;
+				maxNode = newNode;
+				Tmp = Tmp->next;
+			}
+
+			nowLen--;
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
+			}
+			return;
+		}
+		else if ((nowNum > maxNum) && !wcFlag) {
+			maxNum = nowNum;
+			Tmp = nowList;
+			WordNode *maxNode = new WordNode(Tmp->word);
+			maxList = maxNode;
+			Tmp = Tmp->next;
+			while (Tmp != NULL) {
+				WordNode *newNode = new WordNode(Tmp->word);
+				maxNode->next = newNode;
+				maxNode = newNode;
+				Tmp = Tmp->next;
+			}
+			nowLen--;
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
+			}
+			return;
+		}
+		else {
+			nowLen--;
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
+			}
+			return;
+		}
+	}
+}
+
 
 int main(int argc, char* argv[]) {
 	gen("F://google/test.txt");

@@ -52,13 +52,11 @@ int nowLen=0;
 int maxLen=0;
 int nowNum=0;
 int maxNum=0;
-bool wcFlag = false;//判定最长词链方式：-w对应true（总数最多），-c对于false（字母数最多）
-int nNum;//-n对应的找到的单词的数目
-int nSet;//-n对应的n值
-bool wSet;
-bool cSet;
-string hSet;
-string tSet;
+bool wcFlag = true;//判定最长词链方式：-w对应true（总数最多），-c对于false（字母数最多）
+int nListNum;//-n对应的找到的单词的数目
+int nSet = 4;//-n对应的n值
+string hSet = "";//限定头字母的集合
+string tSet = "";//限定尾字母的集合
 string inputFileName;
 
 void writeResult(int mode);
