@@ -242,41 +242,78 @@ void hSearch() {
 		sort(tSet.begin(), tSet.end());
 		tSet.erase(unique(tSet.begin(), tSet.end()), tSet.end());//tSet去重字符
 	}
-
-	if (hSet.empty()) {
-		for (int i = 0; i < 26; i++) {
-			Tmp = wordList[i];
-			while (Tmp->word != "") {
-				nowLen++;
-				nowNum += Tmp->len;
-				nowList = new WordNode(Tmp->word);
-				nowNode = nowList;
-				Tmp->uFlag = true;
-				fSearch(Tmp->tail);
-				Tmp->uFlag = false;
-				Tmp = Tmp->next;
-				nowLen = 0;
-				nowNum = 0;
+	
+	if (!nFlag) {
+		if (hSet.empty()) {
+			for (int i = 0; i < 26; i++) {
+				Tmp = wordList[i];
+				while (Tmp->word != "") {
+					nowLen++;
+					nowNum += Tmp->len;
+					nowList = new WordNode(Tmp->word);
+					nowNode = nowList;
+					Tmp->uFlag = true;
+					fSearch(Tmp->tail);
+					Tmp->uFlag = false;
+					Tmp = Tmp->next;
+					nowLen = 0;
+					nowNum = 0;
+				}
+			}
+		}
+		else {
+			sort(hSet.begin(), hSet.end());
+			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
+			for (unsigned int i = 0; i < hSet.length(); i++) {
+				int num = hSet[i] - 97;
+				Tmp = wordList[num];
+				while (Tmp->word != "") {
+					nowLen++;
+					nowNum += Tmp->len;
+					nowList = new WordNode(Tmp->word);
+					nowNode = nowList;
+					Tmp->uFlag = true;
+					fSearch(Tmp->tail);
+					Tmp->uFlag = false;
+					Tmp = Tmp->next;
+					nowLen = 0;
+					nowNum = 0;
+				}
 			}
 		}
 	}
 	else {
-		sort(hSet.begin(), hSet.end());
-		hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
-		for (unsigned int i = 0; i < hSet.length(); i++) {
-			int num = hSet[i] - 97;
-			Tmp = wordList[num];
-			while (Tmp->word != "") {
-				nowLen++;
-				nowNum += Tmp->len;
-				nowList = new WordNode(Tmp->word);
-				nowNode = nowList;
-				Tmp->uFlag = true;
-				fSearch(Tmp->tail);
-				Tmp->uFlag = false;
-				Tmp = Tmp->next;
-				nowLen = 0;
-				nowNum = 0;
+		if (hSet.empty()) {
+			for (int i = 0; i < 26; i++) {
+				Tmp = wordList[i];
+				while (Tmp->word != "") {
+					nowLen++;
+					nowList = new WordNode(Tmp->word);
+					nowNode = nowList;
+					Tmp->uFlag = true;
+					nSearch(Tmp->tail);
+					Tmp->uFlag = false;
+					Tmp = Tmp->next;
+					nowLen = 0;
+				}
+			}
+		}
+		else {
+			sort(hSet.begin(), hSet.end());
+			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
+			for (unsigned int i = 0; i < hSet.length(); i++) {
+				int num = hSet[i] - 97;
+				Tmp = wordList[num];
+				while (Tmp->word != "") {
+					nowLen++;
+					nowList = new WordNode(Tmp->word);
+					nowNode = nowList;
+					Tmp->uFlag = true;
+					nSearch(Tmp->tail);
+					Tmp->uFlag = false;
+					Tmp = Tmp->next;
+					nowLen = 0;
+				}
 			}
 		}
 	}
@@ -412,10 +449,66 @@ void nSearch(int rank) {
 		nowNode = newNode;
 		nowLen++;
 		if (nowLen == nSet) {
-
+			if (!tSet.empty()) {
+				bool tailFlag = false;
+				for (unsigned int i = 0; i < tSet.length(); i++) {
+					if (nowNode->tail == tSet[i] - 97) {
+						tailFlag = true;
+						break;
+					}
+				}
+				if (!tailFlag) {
+					nowLen--;
+					Tmp = nowList;
+					if (Tmp == NULL) return;
+					if (Tmp->next == NULL) nowList = NULL;
+					else {
+						while (Tmp->next->next != NULL)
+						{
+							Tmp = Tmp->next;
+						}
+						Tmp->next = NULL;
+						nowNode = Tmp;
+					}
+					return;
+				}
+			}
+			nowLen --;
+			nListNum++;
+			
+			WordNode *Tmpp = nowList;
+			WordNode *newNode = new WordNode(Tmp->word);
+			if (maxNode == NULL) {
+				maxNode = newNode;
+				maxList = maxNode;
+			}
+			else {
+				maxNode->next = newNode;
+				maxNode = maxNode->next;
+			}
+			Tmpp = Tmpp->next;
+			while (Tmpp != NULL) {
+				newNode = new WordNode(Tmpp->word);
+				maxNode->next = newNode;
+				maxNode = newNode;
+				Tmpp = Tmpp->next;
+			}
+			
+			Tmpp = nowList;
+			if (Tmpp == NULL) return;
+			if (Tmpp->next == NULL) nowList = NULL;
+			else {
+				while (Tmpp->next->next != NULL)
+				{
+					Tmpp = Tmpp->next;
+				}
+				Tmpp->next = NULL;
+				nowNode = Tmpp;
+			}
+			return;
 		}
-		nowNum += newNode->len;
-		nSearch(nowNode->tail);
+		
+		else nSearch(nowNode->tail);
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
@@ -445,58 +538,35 @@ void nSearch(int rank) {
 				return;
 			}
 		}
-		if ((nowLen > maxLen) && wcFlag) {
-			maxLen = nowLen;
-			Tmp = nowList;
-			WordNode *maxNode = new WordNode(Tmp->word);
-			maxList = maxNode;
-			Tmp = Tmp->next;
-			while (Tmp != NULL) {
-				WordNode *newNode = new WordNode(Tmp->word);
+		if (nowLen == nSet) {
+			nowLen--;
+			nListNum++;
+
+			WordNode *Tmpp = nowList;
+			WordNode *newNode = new WordNode(Tmp->word);
+			if (maxNode == NULL) maxNode = newNode;
+			else {
+				maxNode->next = newNode;
+				maxNode = maxNode->next;
+			}
+			Tmpp = Tmpp->next;
+			while (Tmpp != NULL) {
+				newNode = new WordNode(Tmpp->word);
 				maxNode->next = newNode;
 				maxNode = newNode;
-				Tmp = Tmp->next;
+				Tmpp = Tmpp->next;
 			}
 
-			nowLen--;
-			Tmp = nowList;
-			if (Tmp == NULL) return;
-			if (Tmp->next == NULL) nowList = NULL;
+			Tmpp = nowList;
+			if (Tmpp == NULL) return;
+			if (Tmpp->next == NULL) nowList = NULL;
 			else {
-				while (Tmp->next->next != NULL)
+				while (Tmpp->next->next != NULL)
 				{
-					Tmp = Tmp->next;
+					Tmpp = Tmpp->next;
 				}
-				nowNum -= Tmp->next->len;
-				Tmp->next = NULL;
-				nowNode = Tmp;
-			}
-			return;
-		}
-		else if ((nowNum > maxNum) && !wcFlag) {
-			maxNum = nowNum;
-			Tmp = nowList;
-			WordNode *maxNode = new WordNode(Tmp->word);
-			maxList = maxNode;
-			Tmp = Tmp->next;
-			while (Tmp != NULL) {
-				WordNode *newNode = new WordNode(Tmp->word);
-				maxNode->next = newNode;
-				maxNode = newNode;
-				Tmp = Tmp->next;
-			}
-			nowLen--;
-			Tmp = nowList;
-			if (Tmp == NULL) return;
-			if (Tmp->next == NULL) nowList = NULL;
-			else {
-				while (Tmp->next->next != NULL)
-				{
-					Tmp = Tmp->next;
-				}
-				nowNum -= Tmp->next->len;
-				Tmp->next = NULL;
-				nowNode = Tmp;
+				Tmpp->next = NULL;
+				nowNode = Tmpp;
 			}
 			return;
 		}
