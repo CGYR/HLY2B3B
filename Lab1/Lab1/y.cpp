@@ -244,13 +244,15 @@ void hSearch() {
 		Tmp = wordList[i];
 		while(Tmp->word!=""){
 			nowLen++;
+			nowNum += Tmp->len;
 			nowList = new WordNode(Tmp->word);
 			nowNode = nowList;
 			Tmp->uFlag = true;
 			fSearch(Tmp->tail);
 			Tmp->uFlag = false;
 			Tmp = Tmp->next;
-			nowLen=0;
+			nowLen = 0;
+			nowNum = 0;
 		}
 	}
 }
@@ -267,12 +269,13 @@ void fSearch(int rank) {
 		nowNode->next = newNode;
 		nowNode = newNode;
 		nowLen++;
+		nowNum += newNode->len;
 		fSearch(nowNode->tail);
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
 	if (Tmp->word == "") {
-		if (nowLen > maxLen) {
+		if ((nowLen > maxLen) && wcFlag) {
 			maxLen = nowLen;
 			Tmp = nowList;
 			WordNode *maxNode = new WordNode(Tmp->word);
@@ -284,16 +287,49 @@ void fSearch(int rank) {
 				maxNode = newNode;
 				Tmp = Tmp->next;
 			}
+
+			nowLen--;
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
+			}
+			return;
+		}
+		if ((nowNum > maxNum) && !wcFlag) {
+			maxNum = nowNum;
+			Tmp = nowList;
+			WordNode *maxNode = new WordNode(Tmp->word);
+			maxList = maxNode;
+			Tmp = Tmp->next;
+			while (Tmp != NULL) {
+				WordNode *newNode = new WordNode(Tmp->word);
+				maxNode->next = newNode;
+				maxNode = newNode;
+				Tmp = Tmp->next;
+			}
+			Tmp = nowList;
+			if (Tmp == NULL) return;
+			if (Tmp->next == NULL) nowList = NULL;
+			else {
+				while (Tmp->next->next != NULL)
+				{
+					Tmp = Tmp->next;
+				}
+				nowNum -= Tmp->next->len;
+				Tmp->next = NULL;
+				nowNode = Tmp;
+			}
 			return;
 		}
 		nowLen--;
-		/*Tmp = nowList->next;
-		WordNode* Tnext;
-		while (Tmp != NULL) {
-		Tnext = Tmp->next;
-		delete Tmp;
-		Tmp = Tnext;
-		}*/
 		Tmp = nowList;
 		if (Tmp == NULL) return;
 		if (Tmp->next == NULL) nowList = NULL;
@@ -302,6 +338,7 @@ void fSearch(int rank) {
 			{
 				Tmp = Tmp->next;
 			}
+			nowNum -= Tmp->next->len;
 			Tmp->next = NULL;
 			nowNode = Tmp;
 		}
