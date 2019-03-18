@@ -13,18 +13,10 @@
         <span><img src="./../../static/img/tutu2.png" style="height:60px;"></span>
           <span>软工实验</span>
         </el-menu-item>
-        <el-menu-item index="2">
-
-        </el-menu-item>
-        <span style="position: absolute;right:190px;">
-        <el-menu-item index="3" >实验一</el-menu-item>
-        </span>
-        <span style="position: absolute;right:100px;">
-        <el-menu-item index="4" >实验二</el-menu-item>
-        </span>
-        <span style="position: absolute;right:10px;">
+        <el-menu-item index="2" >实验一</el-menu-item>
+        <el-menu-item index="3" >实验二</el-menu-item>
+        <el-menu-item index="4" >实验三</el-menu-item>
         <el-menu-item index="5" >关于小组</el-menu-item>
-        </span>
       </el-menu>
     </div>
 </template>
@@ -42,6 +34,16 @@
       methods: {
         handleSelect(key, keyPath) {
           console.log(key, keyPath);
+          console.log(key)
+          if(key == 1){
+            this.$router.push({path: '/'});
+          }else if(key == 2) {
+            this.$router.push({path: '/labone'});
+          }else if(key == 3){
+            this.$router.push({path: '/labtwo'});
+          }else if(key == 4){
+            this.$router.push({path: '/labthree'});
+          }
         }
       }
     }

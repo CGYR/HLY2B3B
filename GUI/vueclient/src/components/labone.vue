@@ -4,7 +4,6 @@
     </div>
       <!-- 内容部分 -->
       <el-card class="box-card" >
-        <!-- 文件上传和内容输入  -->
         <el-row>
           <el-col :span="24">
             <el-switch
@@ -142,11 +141,11 @@
         </el-row>
         <div style="height:4px"></div>
         <el-row>
-        Worldlist.exe <span v-if="w_set">-w</span> <span v-if="c_set">-c</span>
-        <span v-if="h_set">-h {{h_input}}</span>
-        <span v-if="t_set">-t {{t_input}}</span>
-        <span v-if="n_set">-n {{n_input}}</span>
-        absolute_path_of_word_list
+          <span style="color:orange">Worldlist.exe</span> <span v-if="w_set" style="font-weight: bold">-w</span> <span v-if="c_set" style="font-weight: bold">-c</span>
+        <span v-if="h_set" style="font-weight: bold">-h {{h_input}}</span>
+        <span v-if="t_set" style="font-weight: bold">-t {{t_input}}</span>
+        <span v-if="n_set" style="font-weight: bold">-n {{n_input}}</span>
+          <span style="color:orange">absolute_path_of_word_list</span>
         </el-row>
       </el-card>
       <!-- 确认部分 -->
