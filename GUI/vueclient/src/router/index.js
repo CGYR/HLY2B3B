@@ -11,6 +11,7 @@ import labthree from '@/components/labthree'
 Vue.use(Router)
 
 export default new Router({
+  mode:'history',
   routes: [
     {
       path: '/', //网站主页

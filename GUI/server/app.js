@@ -15,8 +15,8 @@ var app = express();
 //跨域  后期删
 
 app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:8080"); //"222.195.87.40"为了跨域保持session，所以指定地址，不能用*
-    //上述值在运行时需要换成本机的地址加上网页的端口 http://localhost:8080
+    res.header("Access-Control-Allow-Origin", "http://localhost:8080");
+    // 在服务器上运行时，需要把localhost改为外网地址，或者需要把localhost:8080直接改为域名地址例如 http://uiuiui.cn
     res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.header('Access-Control-Allow-Headers', 'Content-Type');
