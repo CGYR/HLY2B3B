@@ -173,6 +173,7 @@
           t_input: '',
           n_input: '',
           wordoutput: '',
+          hasresult: false, // 用于区别是否已有输出结果
         }
       },
       watch:{
@@ -193,7 +194,15 @@
             this.n_set = false;
             this.showError("-w -c -n只能设置其中一个")
           }
-        }
+        },
+        /* 这个在部署到网站上后需要加上*/
+        /*
+        upload_or_enter_set: function(){
+          if(this.upload_or_enter_set == false){
+            this.upload_or_enter_set = true;
+            this.showError("为了网站安全，网站版本不允许上传文件")
+          }
+        }*/
       },
       methods: {
         showError(words){
@@ -222,9 +231,26 @@
             // 报错
             this.showError("-n 参数没有设置输入的数字")
             return;
+          }else if(this.h_set && this.h_input.length >= 2){
+            this.showError("-h 只能设置一个值")
+            return;
+          }else if(this.t_set && this.t_input.length >= 2){
+            this.showError("-t 只能设置一个值")
+            return;
+          }else if((/[^a-z]/gi.test(this.h_input))){
+            this.showError("-h 只能是小写的字母")
+            return;
+          }else if((/[^a-z]/gi.test(this.t_input))){
+            this.showError("-t 只能是小写的字母")
+            return;
+          }else if((/\D/gi.test(this.n_input))){
+            this.showError("-n 只能是一个整数")
+            return;
           }
-          console.log("bengin executeWordlist")
+          console.log(this.wordinput)
+          console.log("begin executeWordlist")
           var _this = this;
+          _this.hasresult = false;
           this.$reqs.post("/labone/labone_executeWorldlist",{
             wordinfo:{
               upload_or_enter_set:this.upload_or_enter_set,
@@ -246,10 +272,38 @@
               // console.log(result.data.mainJson);
               console.log(result.data);
               _this.wordoutput = result.data;
+              if(_this.wordoutput == "\n"){
+                _this.wordoutput = "没有得到结果"
+              }
+              _this.hasresult = true;
             }
           }).catch(function (error) {
+            console.log(error)
             console.log("发送执行信息失败")
           });
+          console.log("begin execute time")
+          this.waitTime();
+        },
+        //倒计时
+        waitTime(){
+          var a=-1;
+          console.log(this.hasresult)
+          var id=setInterval(()=>{
+            a=a+1
+            console.log(this.hasresult)
+            if(this.hasresult){
+              clearInterval(id);
+              return;
+            }
+            this.wordoutput = "程序正在运行，请等待...\n最多剩余时间" + (60-a*10)
+            if(a===6){
+              if(this.w_set){
+                this.wordoutput = "-w 指令执行超时，强制结束";
+              }
+              clearInterval(id);
+            }
+          },1000);
+          this.wordoutput = "程序正在运行，请等待..."
         },
         sayHellotest(){
           console.log("hellow");

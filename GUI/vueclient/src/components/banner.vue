@@ -43,6 +43,8 @@
             this.$router.push({path: '/labtwo'});
           }else if(key == 4){
             this.$router.push({path: '/labthree'});
+          }else if(key == 5){
+            this.$router.push({path: '/lababout'});
           }
         }
       }

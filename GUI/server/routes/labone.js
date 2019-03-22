@@ -60,6 +60,7 @@ router.post('/labone_executeWorldlist', function(req, res, next) {
         }
 
     }catch(ex){
+        // 这里还需要增加一个执行错误报错
         console.log("fuck")
     }
     // 向前端发送搜索到的数据

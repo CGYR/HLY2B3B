@@ -7,6 +7,7 @@ import labone from '@/components/labone'
 import labhome from '@/components/labhome'
 import labtwo from '@/components/labtwo'
 import labthree from '@/components/labthree'
+import lababout from '@/components/lababout'
 
 Vue.use(Router)
 
@@ -37,6 +38,9 @@ export default new Router({
         {
           path: 'labthree',
           component: labthree,
+        },{
+          path: 'lababout',
+          component: lababout,
         }
       ]
     },

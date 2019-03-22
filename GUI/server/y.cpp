@@ -119,8 +119,28 @@ void writeError(int errorCode) {
 		exit(0);
 	}
 	case 2: {
-		printf("命令行参数错误\n");
+		printf("非法的命令行参数\n");
 		outfile << "-2" << endl;
+		exit(0);
+	}
+	case 3:{
+		printf("-n参数后面需要一个数字\n");
+		outfile << "-3" << endl;
+		exit(0);
+	}
+	case 4:{
+		printf("-h参数后面需要一个字符\n");
+		outfile << "-4" << endl;
+		exit(0);
+	}
+	case 5:{
+		printf("-t参数后面需要一个字符\n");
+		outfile << "-5" << endl;
+		exit(0);
+	}
+	case 6:{
+		printf("-w -c -n 参数三者之间只能选择一个\n");
+		outfile << "-6" << endl;
 		exit(0);
 	}
 	}
@@ -137,6 +157,10 @@ void writeResult(int mode) {
 			result = result + nextNode->word + "\n";
 			nextNode = nextNode->next;
 		}
+		ofstream outfile;
+		outfile.open("solution.txt");
+		outfile << result << endl;
+		outfile.close();
 	}
 	else if (mode == 2) {
 		WordNode* nextNode = maxList;
@@ -152,14 +176,20 @@ void writeResult(int mode) {
 			count++;
 			nextNode = nextNode->next;
 		}
+		ofstream outfile;
+		outfile.open("solution.txt",std::ios::app);
+		outfile << result << "\n";
+		outfile.close();
 	}
 	else {
 		// 报错
 	}
+	/*
 	ofstream outfile;
 	outfile.open("solution.txt");
 	outfile << result << endl;
 	outfile.close();
+	*/
 }
 
 void parseCommandLineEnter(int argc, char* argv[]) {
@@ -180,12 +210,17 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 		printf("%s\n",argv[i]);
 	}
 	bool flag = false;
+	bool flag_n = false;
+	if(argc <=2 ){
+		// 参数数量出现问题
+		writeError(2);
+	}
 	for (int i = 1; i<argc - 1;) {
 		printf("%s\n", argv[i]);
 		if (!strcmp("-w", argv[i])) {
 			if (flag) {
 				// 报错
-				writeError(2);
+				writeError(6);
 			}
 			printf("wSet!\n");
 			wcFlag = true;
@@ -195,7 +230,7 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 		else if (!strcmp("-c", argv[i])) {
 			if (flag) {
 				// 报错
-				writeError(2);
+				writeError(6);
 			}
 			printf("cSet!\n");
 			wcFlag = false;
@@ -203,8 +238,13 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			++i;
 		}
 		else if (!strcmp("-h", argv[i])) {
-			if (hSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
+			if(strlen(argv[i+1])>=2){
+				writeError(2);
+			}
+			if (argv[i + 1][0]<97 || argv[i + 1][0]>122 || i+1 >= argc-1) {
 				// 报错
+				writeError(4);
+			}else if(hSet != ""){
 				writeError(2);
 			}
 			printf("hSet! and hSet is %s\n", argv[i + 1]);
@@ -212,8 +252,13 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			i += 2;
 		}
 		else if (!strcmp("-t", argv[i])) {
-			if (tSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
+			if(strlen(argv[i+1])>=2){
+				writeError(2);
+			}
+			else if (argv[i + 1][0]<97 || argv[i + 1][0]>122 || i+1 >= argc-1) {
 				// 报错
+				writeError(5);
+			}else if(tSet != ""){
 				writeError(2);
 			}
 			printf("tSet! and tSet is %s\n", argv[i + 1]);
@@ -221,12 +266,22 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			i += 2;
 		}
 		else if (!strcmp("-n", argv[i])) {
-			if (nSet>0 && (argv[i + 1][0] < 49 || argv[i + 1][0] > 57)) {
-				// 报错
-				writeError(2);
+			printf("dsfsdfds %d",argv[i + 1][0]);
+			int n_num = 0;
+			try{
+				n_num = std::stoi(argv[i + 1]);
+			}catch(std::invalid_argument&){
+				writeError(3);
 			}
-			printf("nSet! and nSet is %d\n", argv[i + 1][0] - 48);
-			nSet = argv[i + 1][0] - 48;
+			
+			if(flag){
+				writeError(6);
+			}else if(flag_n){
+				writeError(2);	
+			}
+			printf("nSet! and nSet is %d\n", n_num);
+			nSet = n_num;
+			flag_n = true; 
 			i += 2;
 		}
 		else {
@@ -234,11 +289,6 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			writeError(2);
 			++i;
 		}
-		// 非法命令组合错误
-		/*if ((wSet && cSet) || (wSet && nSet != 0) || (cSet && nSet != 0)) {
-			// 错误
-			writeError(2);
-		}*/
 	}
 }
 
