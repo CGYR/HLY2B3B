@@ -5,8 +5,12 @@
 #include<fstream>
 #include<stdlib.h>
 #include<vector>
+#include<list>
 #include<string>
+#include<ctime>
 using namespace std;
+
+class WordTwo;
 
 class WordNode
 {
@@ -16,9 +20,12 @@ public:
 	int tail;
 	int len;
 	bool uFlag = false;
+	int offset = 0;
+	vector<WordTwo*> next2;
 	WordNode* next = NULL;
 	WordNode();
 	WordNode(string inw);
+	WordNode(WordNode* inNode);
 	~WordNode();
 
 private:
@@ -33,6 +40,13 @@ WordNode::WordNode(string inw)
 	tail = word[word.length()-1] - 97;
 }
 
+WordNode::WordNode(WordNode* inNode) {
+	word = inNode->word;
+	len = inNode->len;
+	uFlag = inNode->uFlag;
+	next = inNode->next;
+}
+
 WordNode::WordNode()
 {
 	
@@ -44,27 +58,58 @@ WordNode::~WordNode()
 	
 }
 
+class WordTwo{
+public:
+	friend class WordNode;
+	WordTwo(WordNode*n1,WordNode*n2);
+	~WordTwo();
+	WordNode* Word1st = NULL;
+	WordNode* Word2st = NULL;
+private:
+
+};
+
+WordTwo::WordTwo(WordNode*n1, WordNode*n2)
+{
+	Word1st = n1;
+	Word2st = n2;
+}
+
+WordTwo::~WordTwo()
+{
+}
+
 WordNode* wordList[26];
 WordNode* maxList = NULL;
 WordNode* maxNode = NULL;
+WordNode* maxL = NULL;
+WordNode* maxN = NULL;
+WordNode* headNow = NULL;
+list<WordNode*> nList;
 WordNode* nowList = NULL;
 WordNode* nowNode = NULL;
 int nowLen=0;
 int maxLen=0;
 int nowNum=0;
 int maxNum=0;
-bool wcFlag = true;//åˆ¤å®šæœ€é•¿è¯é“¾æ–¹å¼ï¼š-wå¯¹åº”trueï¼ˆæ€»æ•°æœ€å¤šï¼‰ï¼Œ-cå¯¹äºfalseï¼ˆå­—æ¯æ•°æœ€å¤šï¼‰
-bool nFlag = false;//è¾“å‡ºå®šé•¿ï¼Œä¼˜å…ˆçº§é«˜äºwcFlag
-int nListNum = 0;//-nå¯¹åº”çš„æ‰¾åˆ°çš„å•è¯çš„æ•°ç›®
-int nSet = 0;//-nå¯¹åº”çš„nå€¼
-string hSet = "";//é™å®šå¤´å­—æ¯çš„é›†åˆ
-string tSet = "";//é™å®šå°¾å­—æ¯çš„é›†åˆ
+bool wcFlag = true;//ÅĞ¶¨×î³¤´ÊÁ´·½Ê½£º-w¶ÔÓ¦true£¨×ÜÊı×î¶à£©£¬-c¶ÔÓÚfalse£¨×ÖÄ¸Êı×î¶à£©
+bool nFlag = false;//Êä³ö¶¨³¤£¬ÓÅÏÈ¼¶¸ßÓÚwcFlag
+int nListNum = 0;//-n¶ÔÓ¦µÄÕÒµ½µÄµ¥´ÊµÄÊıÄ¿
+int nSet = 0;//-n¶ÔÓ¦µÄnÖµ
+string hSet = "";//ÏŞ¶¨Í·×ÖÄ¸µÄ¼¯ºÏ
+string tSet = "";//ÏŞ¶¨Î²×ÖÄ¸µÄ¼¯ºÏ
 string inputFileName;
+time_t startTime = time(NULL);
+bool timeFlag = false;
+int step = 1;
+int wordSum[26] = { 0 };
+ofstream outfile; // Êä³öÎÄ¼ş
 
 void writeResult(int mode);
 void writeError(int errorCode);
 bool gen(string path);
 void hSearch();
 void fSearch(int rank);
-void nSearch(int rank);
+void nSearch(WordNode*n,int step);
 void parseCommandLineEnter(int argc, char* argv[]);
+bool isRepeat(WordTwo* n);

@@ -71,7 +71,9 @@ router.post('/labone_executeWorldlist', function(req, res, next) {
     des_file = __dirname + "/../solution.txt";
 
     var result = fs.readFileSync(des_file).toString();
-
+    if(result.length>10000){
+        result = result.substring(0,10000)+"......\n(为了快速渲染，后面结果省略，可直接导出文件查看)"
+    }
     console.log(result);
     res.send(result);
     res.end('{"success":"true"}');
@@ -137,4 +139,32 @@ router.post("/file_upload",function(req,res,next){
     })
 });
 
+// 下载文件
+router.get('/download',function(req, res, next){
+    console.log("download begin!");
+    console.log(__dirname);
+    var fileName = req.query.name;
+    console.log(fileName);
+    var currFile = __dirname + '/../' + fileName;
+    console.log(currFile);
+    var fReadStream = fs.createReadStream(currFile);
+    console.log(currFile);
+    fs.exists(currFile,function(exist) {
+        if(exist){
+            res.set({
+                "Content-type":"application/octet-stream",
+                "Content-Disposition":"attachment;filename="+encodeURI(fileName)
+            });
+            fReadStream = fs.createReadStream(currFile);
+            fReadStream.on("data",(chunk) => res.write(chunk,"binary"));
+            fReadStream.on("end",function () {
+                res.end();
+            });
+        }else{
+            res.set("Content-type","text/html");
+            res.send("file not exist!");
+            res.end();
+        }
+    });
+});
 module.exports = router;

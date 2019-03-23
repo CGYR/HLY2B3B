@@ -1,4 +1,4 @@
-#include"yh.h"
+﻿#include"yh.h"
 #pragma warning(disable:4996)
 /*
 WordNode* wordList[26];
@@ -34,6 +34,7 @@ bool gen(string path) {
 	int i = 0;
 	int rank = 0;
 	int len = 0;
+	int offset = 0;
 	bool reaptFlag = false;
 	WordNode* nodeTmp = NULL;
 	while (charTmp!='\0') {
@@ -47,6 +48,7 @@ bool gen(string path) {
 							break;
 						}
 						nodeTmp = nodeTmp->next;
+						offset++;
 					}
 					if (reaptFlag) break;
 				}
@@ -56,10 +58,12 @@ bool gen(string path) {
 					wordTmp = "";
 					len = 0;
 					charTmp = wordIn[++i];
+					offset = 0;
 					continue;
 				}
 				WordNode *Node = new WordNode(wordTmp);
 				rank = wordTmp[0] - 97;
+				Node->offset = offset;
 				Node->next = wordList[rank];
 				wordList[rank] = Node;
 				wordTmp = "";
@@ -101,6 +105,20 @@ bool gen(string path) {
 		}
 	}
 
+	WordNode *Tmp,*Tmpp;
+	for (int i = 0; i < 26 && nSet>2; i++) {
+		Tmp = wordList[i];
+		wordSum[i] = Tmp->offset;//offset set by neg-th,so first word's offset is the sum of words in a line.(actually, sum-1)
+		while (Tmp->word != "") {//find all word's follow 2 word list
+			for (Tmpp = wordList[Tmp->tail]; Tmpp->word != ""; Tmpp = Tmpp->next) {
+				for (WordNode* Tmppp = wordList[Tmpp->tail]; Tmppp->word != ""; Tmppp = Tmppp->next) {
+					Tmp->next2.push_back(new WordTwo(Tmpp, Tmppp));
+				}
+			}
+			Tmp = Tmp->next;
+		}
+	}
+	
 	return true;
 }
 
@@ -163,9 +181,8 @@ void writeResult(int mode) {
 		outfile.close();
 	}
 	else if (mode == 2) {
-		WordNode* nextNode = maxList;
+		WordNode* nextNode = nowList;
 		int count = 1;
-		result += to_string(nListNum) + "\n";
 		while (nextNode != NULL) {
 			if (count != 1 && count%nSet == 0) {
 				result = result + nextNode->word + "\n\n";
@@ -176,10 +193,10 @@ void writeResult(int mode) {
 			count++;
 			nextNode = nextNode->next;
 		}
-		ofstream outfile;
-		outfile.open("solution.txt",std::ios::app);
-		outfile << result << "\n";
-		outfile.close();
+		
+		//outfile.open("solution.txt",std::ios::app);
+		outfile << result << "";
+		//outfile.close();
 	}
 	else {
 		// 报错
@@ -337,17 +354,44 @@ void hSearch() {
 				}
 			}
 		}
+		writeResult(1);
 	}
 	else {
+		nowNode = new WordNode();
+		nowList = nowNode;
+		for (int i = 1; i < nSet; i++) {//init nowlist as n length
+			Tmp = new WordNode();
+			nowNode->next = Tmp;
+			nowNode = nowNode->next;
+		}
+
 		if (hSet.empty()) {
 			for (int i = 0; i < 26; i++) {
 				Tmp = wordList[i];
 				while (Tmp->word != "") {
 					nowLen++;
-					nowList = new WordNode(Tmp->word);
+					nowList->word = Tmp->word;
 					nowNode = nowList;
 					Tmp->uFlag = true;
-					nSearch(Tmp->tail);
+					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
+						nSearch(wordList[Tmp->tail], 1);
+					}
+					else {//n == odd, then 2 step each time
+						for (auto & i : Tmp->next2) {
+							if (isRepeat(i)) continue;
+							nowNode = nowList->next;
+							nowNode->word = i->Word1st->word;
+							nowNode->next->word = i->Word2st->word;
+							nowNode = nowNode->next;
+							nowLen += 2;
+							i->Word1st->uFlag = true;
+							i->Word2st->uFlag = true;
+							nSearch(i->Word2st, 2);
+							nowLen -= 2;
+							i->Word1st->uFlag = false;
+							i->Word2st->uFlag = false;
+						}
+					}
 					Tmp->uFlag = false;
 					Tmp = Tmp->next;
 					nowLen = 0;
@@ -362,10 +406,28 @@ void hSearch() {
 				Tmp = wordList[num];
 				while (Tmp->word != "") {
 					nowLen++;
-					nowList = new WordNode(Tmp->word);
+					nowList->word = Tmp->word;
 					nowNode = nowList;
 					Tmp->uFlag = true;
-					nSearch(Tmp->tail);
+					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
+						nSearch(wordList[Tmp->tail], 1);
+					}
+					else {//n == odd, then 2 step each time
+						for (auto & i : Tmp->next2) {
+							if (isRepeat(i)) continue;
+							nowNode = nowList->next;
+							nowNode->word = i->Word1st->word;
+							nowNode->next->word = i->Word2st->word;
+							nowNode = nowNode->next;
+							nowLen += 2;
+							i->Word1st->uFlag = true;
+							i->Word2st->uFlag = true;
+							nSearch(i->Word2st, 2);
+							nowLen -= 2;
+							i->Word1st->uFlag = false;
+							i->Word2st->uFlag = false;
+						}
+					}
 					Tmp->uFlag = false;
 					Tmp = Tmp->next;
 					nowLen = 0;
@@ -376,6 +438,7 @@ void hSearch() {
 }
 
 void fSearch(int rank) {
+	if (difftime(time(NULL), startTime) > 59) return;
 	WordNode* Tmp = wordList[rank];
 	while ( Tmp->word != "") {
 		if (Tmp->uFlag == true) {
@@ -492,17 +555,20 @@ void fSearch(int rank) {
 	}
 }
 
-void nSearch(int rank) {
-	WordNode* Tmp = wordList[rank];
-	while (Tmp->word != "") {
+void nSearch(WordNode *now,int step) {
+	if (difftime(time(NULL) , startTime) > 59) return;
+	WordNode* Tmp = now;
+	//one step:
+	while (step == 1 && Tmp->word != "") {
 		if (Tmp->uFlag == true) {
 			Tmp = Tmp->next;
 			continue;
 		}
 		Tmp->uFlag = true;
-		WordNode *newNode = new WordNode(Tmp->word);
-		nowNode->next = newNode;
-		nowNode = newNode;
+		nowNode = nowList;
+		for (int i = 1; i <= nowLen; i++) nowNode = nowNode->next;//right position at list
+		nowNode->word = Tmp->word;
+		nowNode = nowNode->next;
 		nowLen++;
 		if (nowLen == nSet) {
 			if (!tSet.empty()) {
@@ -514,61 +580,74 @@ void nSearch(int rank) {
 					}
 				}
 				if (!tailFlag) {
-					nowLen--;
-					Tmp = nowList;
-					if (Tmp == NULL) return;
-					if (Tmp->next == NULL) nowList = NULL;
-					else {
-						while (Tmp->next->next != NULL)
-						{
-							Tmp = Tmp->next;
-						}
-						Tmp->next = NULL;
-						nowNode = Tmp;
-					}
-					return;
+					continue;
 				}
 			}
-			nowLen --;
 			nListNum++;
-			
-			WordNode *Tmpp = nowList;
-			WordNode *newNode = new WordNode(Tmpp->word);
-			if (maxNode == NULL) {
-				maxNode = newNode;
-				maxList = maxNode;
-			}
-			else {
-				maxNode->next = newNode;
-				maxNode = maxNode->next;
-			}
-			Tmpp = Tmpp->next;
-			while (Tmpp != NULL) {
-				newNode = new WordNode(Tmpp->word);
-				maxNode->next = newNode;
-				maxNode = newNode;
-				Tmpp = Tmpp->next;
-			}
-			
-			Tmpp = nowList;
-			if (Tmpp == NULL) ;
-			if (Tmpp->next == NULL) nowList = NULL;
-			else {
-				while (Tmpp->next->next != NULL)
-				{
-					Tmpp = Tmpp->next;
-				}
-				Tmpp->next = NULL;
-				nowNode = Tmpp;
-			}
+			writeResult(2);
+			//output nowList!! func?
 		}
 		
-		else nSearch(nowNode->tail);
+		else {
+			for(auto & i : Tmp->next2){
+				if (isRepeat(i)) continue;//if repeat, then skip it 
+				nowNode = nowList;
+				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
+				nowNode->word = i->Word1st->word;
+				nowNode->next->word = i->Word2st->word;
+				nowNode = nowNode->next;
+				nowLen += 2;
+				i->Word1st->uFlag = true;
+				i->Word2st->uFlag = true;
+				nSearch(i->Word2st, 2);
+				nowLen -= 2;
+				i->Word1st->uFlag = false;
+				i->Word2st->uFlag = false;
+			}
+		}
+		nowLen--;
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
 
-	if (Tmp->word == "") {
+	if (step == 2) {
+		if (nowLen == nSet) {
+			if (!tSet.empty()) {
+				bool tailFlag = false;
+				for (unsigned int i = 0; i < tSet.length(); i++) {
+					if (nowNode->tail == tSet[i] - 97) {
+						tailFlag = true;
+						break;
+					}
+				}
+				if (!tailFlag) {
+					return;
+				}
+			}
+			nListNum++;
+			writeResult(2);
+		}
+
+		else {
+			for (auto & i : now->next2) {
+				if (isRepeat(i)) continue;
+				nowNode = nowList;
+				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
+				nowNode->word = i->Word1st->word;
+				nowNode->next->word = i->Word2st->word;
+				nowNode = nowNode->next;
+				nowLen += 2;
+				i->Word1st->uFlag = true;
+				i->Word2st->uFlag = true;
+				nSearch(i->Word2st, 2);
+				nowLen -= 2;
+				i->Word1st->uFlag = false;
+				i->Word2st->uFlag = false;
+			}
+		}
+	}
+
+	if (Tmp->word == "" && step == 1) {
 		if (!tSet.empty()) {
 			bool tailFlag = false;
 			for (unsigned int i = 0; i < tSet.length(); i++) {
@@ -578,79 +657,54 @@ void nSearch(int rank) {
 				}
 			}
 			if (!tailFlag) {
-				nowLen--;
-				Tmp = nowList;
-				if (Tmp == NULL) return;
-				if (Tmp->next == NULL) nowList = NULL;
-				else {
-					while (Tmp->next->next != NULL)
-					{
-						Tmp = Tmp->next;
-					}
-					nowNum -= Tmp->next->len;
-					Tmp->next = NULL;
-					nowNode = Tmp;
-				}
 				return;
 			}
 		}
 		if (nowLen == nSet) {
-			nowLen--;
+			if (!tSet.empty()) {
+				bool tailFlag = false;
+				for (unsigned int i = 0; i < tSet.length(); i++) {
+					if (nowNode->tail == tSet[i] - 97) {
+						tailFlag = true;
+						break;
+					}
+				}
+				if (!tailFlag) {
+					return;
+				}
+			}
 			nListNum++;
-
-			WordNode *Tmpp = nowList;
-			WordNode *newNode = new WordNode(Tmp->word);
-			if (maxNode == NULL) maxNode = newNode;
-			else {
-				maxNode->next = newNode;
-				maxNode = maxNode->next;
-			}
-			Tmpp = Tmpp->next;
-			while (Tmpp != NULL) {
-				newNode = new WordNode(Tmpp->word);
-				maxNode->next = newNode;
-				maxNode = newNode;
-				Tmpp = Tmpp->next;
-			}
-
-			Tmpp = nowList;
-			if (Tmpp == NULL) return;
-			if (Tmpp->next == NULL) nowList = NULL;
-			else {
-				while (Tmpp->next->next != NULL)
-				{
-					Tmpp = Tmpp->next;
-				}
-				Tmpp->next = NULL;
-				nowNode = Tmpp;
-			}
-			return;
-		}
-		else {
-			nowLen--;
-			Tmp = nowList;
-			if (Tmp == NULL) return;
-			if (Tmp->next == NULL) nowList = NULL;
-			else {
-				while (Tmp->next->next != NULL)
-				{
-					Tmp = Tmp->next;
-				}
-				nowNum -= Tmp->next->len;
-				Tmp->next = NULL;
-				nowNode = Tmp;
-			}
-			return;
+			writeResult(2);
 		}
 	}
 }
 
-
+bool isRepeat(WordTwo* n) {
+	if (n->Word1st->uFlag == false && n->Word2st->uFlag == false) return false;
+	return true;
+}
 
 int main(int argc, char* argv[]) {
 	parseCommandLineEnter(argc, argv);
+	/******清空solution.txt文件，并打开等待写入,注意 只针对-n参数s*******/
+	if(nSet>0){
+		outfile.open("solution.txt");
+		outfile.close();
+		outfile.open("solution.txt");
+		outfile << "                   " << "\n";
+	}
+	/****************/ 
 	gen(inputFileName);
 	hSearch();
-	if (nFlag) writeResult(2);
-	else writeResult(1);
+	outfile.close();
+	/******对于-n，需要写入数字*******/
+	if(nSet > 0){
+		outfile.open("solution.txt", ios::binary | ios::out | ios::in);
+		outfile.seekp(0,ios::beg);
+		outfile << to_string(nListNum) << "";
+		outfile.close();
+	}
+	
+	/*************/
+	return 0;
 }

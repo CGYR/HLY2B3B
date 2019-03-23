@@ -152,6 +152,7 @@
       <el-card>
         <div align="center">
         <el-button type="success" round @click="executeWordlist">点击执行Worldlist.exe程序</el-button>
+          <el-button v-bind:type="output_button_color" v-bind:disabled="output_disabled" round @click="download">导出结果</el-button>
         </div>
       </el-card>
   </div>
@@ -174,6 +175,8 @@
           n_input: '',
           wordoutput: '',
           hasresult: false, // 用于区别是否已有输出结果
+          output_button_color:"info",
+          output_disabled:true,
         }
       },
       watch:{
@@ -195,12 +198,22 @@
             this.showError("-w -c -n只能设置其中一个")
           }
         },
+        hasresult(){
+          if(this.hasresult == false){
+            this.output_button_color = "info"
+            this.output_disabled = true
+          }else if(this.hasresult == true){
+            this.output_button_color = "primary"
+            this.output_disabled = false
+          }
+        }
+
         /* 这个在部署到网站上后需要加上*/
         /*
         upload_or_enter_set: function(){
           if(this.upload_or_enter_set == false){
             this.upload_or_enter_set = true;
-            this.showError("为了网站安全，网站版本不允许上传文件")
+            this.showError("为了网站安全，网站版本不允许上传文件，若想使用该功能请使用本地运行的版本")
           }
         }*/
       },
@@ -295,15 +308,38 @@
               clearInterval(id);
               return;
             }
-            this.wordoutput = "程序正在运行，请等待...\n最多剩余时间" + (60-a*10)
+            this.wordoutput = "程序正在运行，请等待...\n最多剩余时间" + (50-a*10)+"s"
             if(a===6){
               if(this.w_set){
                 this.wordoutput = "-w 指令执行超时，强制结束";
               }
               clearInterval(id);
             }
-          },1000);
-          this.wordoutput = "程序正在运行，请等待..."
+          },10000);
+          this.wordoutput = "程序正在运行，请等待...\n最多剩余时间60s"
+        },
+        download(){
+          console.log("download")
+          var _this = this;
+          _this.output_button_color = "info"
+          _this.output_disabled = true
+          this.$reqs.get("/labone/download",{
+            params:{
+              name:'solution.txt',
+            }
+          }).then(function(result){
+            //成功
+            if(result.data.err){
+              alert(result.data.err);
+            }else {
+              console.log("download success!")
+              console.log("dd"+result.data.success);
+              window.open('http://localhost:3000/labone/download?name=solution.txt');
+            }
+          }).catch(function (error) {
+            //失败
+            console.log("download faild"+error);
+          });
         },
         sayHellotest(){
           console.log("hellow");
