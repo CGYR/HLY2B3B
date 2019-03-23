@@ -1,4 +1,4 @@
-#include"yh.h"
+ï»¿#include"yh.h"
 #pragma warning(disable:4996)
 /*
 WordNode* wordList[26];
@@ -6,8 +6,8 @@ WordNode* maxList = NULL;
 int maxLen;
 WordNode* nowList = NULL;
 int nowLen;
-int nNum;//-n¶ÔÓ¦µÄÕÒµ½µÄµ¥´ÊµÄÊıÄ¿
-int nSet;//-n¶ÔÓ¦µÄnÖµ
+int nNum;//-nå¯¹åº”çš„æ‰¾åˆ°çš„å•è¯çš„æ•°ç›®
+int nSet;//-nå¯¹åº”çš„nå€¼
 
 void writeResult(int mode);
 void writeError(int errorCode);
@@ -34,9 +34,10 @@ bool gen(string path) {
 	int i = 0;
 	int rank = 0;
 	int len = 0;
+	int offset = 0;
 	bool reaptFlag = false;
 	WordNode* nodeTmp = NULL;
-	while (charTmp!='\0') {
+	while (charTmp != '\0') {
 		if (charTmp < 97 || charTmp > 122) {
 			if (wordTmp != "" && len >1) {
 				for (int j = 0; j < 26; j++) {
@@ -47,6 +48,7 @@ bool gen(string path) {
 							break;
 						}
 						nodeTmp = nodeTmp->next;
+						offset++;
 					}
 					if (reaptFlag) break;
 				}
@@ -56,16 +58,18 @@ bool gen(string path) {
 					wordTmp = "";
 					len = 0;
 					charTmp = wordIn[++i];
+					offset = 0;
 					continue;
 				}
 				WordNode *Node = new WordNode(wordTmp);
 				rank = wordTmp[0] - 97;
+				Node->offset = offset;
 				Node->next = wordList[rank];
 				wordList[rank] = Node;
 				wordTmp = "";
 				len = 0;
 			}
-			else if( len<=1 ){
+			else if (len <= 1) {
 				wordTmp = "";
 				len = 0;
 			}
@@ -101,34 +105,68 @@ bool gen(string path) {
 		}
 	}
 
+	WordNode *Tmp, *Tmpp;
+	for (int i = 0; i < 26 && nSet>2; i++) {
+		Tmp = wordList[i];
+		wordSum[i] = Tmp->offset;//offset set by neg-th,so first word's offset is the sum of words in a line.(actually, sum-1)
+		while (Tmp->word != "") {//find all word's follow 2 word list
+			for (Tmpp = wordList[Tmp->tail]; Tmpp->word != ""; Tmpp = Tmpp->next) {
+				for (WordNode* Tmppp = wordList[Tmpp->tail]; Tmppp->word != ""; Tmppp = Tmppp->next) {
+					Tmp->next2.push_back(new WordTwo(Tmpp, Tmppp));
+				}
+			}
+			Tmp = Tmp->next;
+		}
+	}
+
 	return true;
 }
 
-// ½«´íÎó´úÂëĞ´Èësolution.txt
-// ÔÚÃüÁîĞĞÔËĞĞÄ£Ê½ÖĞ£¬ÔòÖ±½ÓprintÒ»¸ö´íÎóºóÍÆ³ö
-// ÊäÈë£º´íÎó±àºÅ
+// å°†é”™è¯¯ä»£ç å†™å…¥solution.txt
+// åœ¨å‘½ä»¤è¡Œè¿è¡Œæ¨¡å¼ä¸­ï¼Œåˆ™ç›´æ¥printä¸€ä¸ªé”™è¯¯åæ¨å‡º
+// è¾“å…¥ï¼šé”™è¯¯ç¼–å·
 void writeError(int errorCode) {
 	ofstream outfile;
 	outfile.open("solution.txt");
-	// ¸ù¾İ´íÎó±àºÅ£¬½«´íÎóÔ­Òò´ò³ö/Ğ´Èë/ÍË³ö
-	// ĞèÒª¸ü¶àµÄ´íÎó£¬¿ÉÌí¼Ó
+	// æ ¹æ®é”™è¯¯ç¼–å·ï¼Œå°†é”™è¯¯åŸå› æ‰“å‡º/å†™å…¥/é€€å‡º
+	// éœ€è¦æ›´å¤šçš„é”™è¯¯ï¼Œå¯æ·»åŠ 
 	switch (errorCode) {
 	case 1: {
-		printf("ÎÄ¼ş²»´æÔÚ£¡£¡£¡£¡£¡\n");
+		printf("æ–‡ä»¶ä¸å­˜åœ¨ï¼ï¼ï¼ï¼ï¼\n");
 		outfile << "-1" << endl;
 		exit(0);
 	}
 	case 2: {
-		printf("ÃüÁîĞĞ²ÎÊı´íÎó\n");
+		printf("éæ³•çš„å‘½ä»¤è¡Œå‚æ•°ï¼ˆ-hã€-t åè·Ÿçš„å­—ç¬¦ä¸²ä¸­åªå…è®¸åŒ…å«å­—æ¯ï¼‰\n");
 		outfile << "-2" << endl;
+		exit(0);
+	}
+	case 3: {
+		printf("-nå‚æ•°åé¢éœ€è¦ä¸€ä¸ªæ•°å­—\n");
+		outfile << "-3" << endl;
+		exit(0);
+	}
+	case 4: {
+		printf("-hå‚æ•°åé¢éœ€è¦è‡³å°‘ä¸€ä¸ªå­—ç¬¦\n");
+		outfile << "-4" << endl;
+		exit(0);
+	}
+	case 5: {
+		printf("-tå‚æ•°åé¢éœ€è¦è‡³å°‘ä¸€ä¸ªå­—ç¬¦\n");
+		outfile << "-5" << endl;
+		exit(0);
+	}
+	case 6: {
+		printf("-w -c -n å‚æ•°ä¸‰è€…ä¹‹é—´åªèƒ½é€‰æ‹©ä¸€ä¸ª\n");
+		outfile << "-6" << endl;
 		exit(0);
 	}
 	}
 	outfile.close();
 }
 
-// Ä£Ê½1: Õë¶Ô-w -c Ö»ĞèÒªÊä³öÒ»¸öµ¥´Ê´®µÄÇé¿ö
-// Ä£Ê½2: Õë¶Ô-n ĞèÒªÊä³ö¶à¸öµ¥´Ê´®µÄÇé¿ö
+// æ¨¡å¼1: é’ˆå¯¹-w -c åªéœ€è¦è¾“å‡ºä¸€ä¸ªå•è¯ä¸²çš„æƒ…å†µ
+// æ¨¡å¼2: é’ˆå¯¹-n éœ€è¦è¾“å‡ºå¤šä¸ªå•è¯ä¸²çš„æƒ…å†µ
 void writeResult(int mode) {
 	string result = "";
 	if (mode == 1) {
@@ -137,11 +175,14 @@ void writeResult(int mode) {
 			result = result + nextNode->word + "\n";
 			nextNode = nextNode->next;
 		}
+		ofstream outfile;
+		outfile.open("solution.txt");
+		outfile << result << endl;
+		outfile.close();
 	}
 	else if (mode == 2) {
-		WordNode* nextNode = maxList;
+		WordNode* nextNode = nowList;
 		int count = 1;
-		result += to_string(nListNum) + "\n";
 		while (nextNode != NULL) {
 			if (count != 1 && count%nSet == 0) {
 				result = result + nextNode->word + "\n\n";
@@ -152,90 +193,123 @@ void writeResult(int mode) {
 			count++;
 			nextNode = nextNode->next;
 		}
+
+		//outfile.open("solution.txt",std::ios::app);
+		outfile << result << "";
+		//outfile.close();
 	}
 	else {
-		// ±¨´í
+		// æŠ¥é”™
 	}
+	/*
 	ofstream outfile;
 	outfile.open("solution.txt");
 	outfile << result << endl;
 	outfile.close();
+	*/
 }
 
 void parseCommandLineEnter(int argc, char* argv[]) {
-	// ÏÈÅĞ¶ÏÊ×Î»ÊäÈëÊÇ·ñÕıÈ· ×¢Òâ£¬Î²²¿²»ĞèÒª
-	/* ÕâÀïÏÈ×¢ÊÍµô ×îºóÏû³ı×¢ÊÍ
-	if(stricmp("Wordlist.exe",argv[0])){
-	// ÉèÖÃ´íÎóÊä³ö
+	// å…ˆåˆ¤æ–­é¦–ä½è¾“å…¥æ˜¯å¦æ­£ç¡® æ³¨æ„ï¼Œå°¾éƒ¨ä¸éœ€è¦
+	/* è¿™é‡Œå…ˆæ³¨é‡Šæ‰ æœ€åæ¶ˆé™¤æ³¨é‡Š
+	if(strcmp("Wordlist.exe",argv[0])){
+	// è®¾ç½®é”™è¯¯è¾“å‡º
 	writeError(2);
 	}*/
-	// ÉèÖÃÊäÈëÎÄ¼şÃû³Æ
+	// è®¾ç½®è¾“å…¥æ–‡ä»¶åç§°
 	inputFileName = argv[argc - 1];
-	// ÏÈ³õÊ¼»¯²ÎÊı
+	// å…ˆåˆå§‹åŒ–å‚æ•°
 	nListNum = 0;
 	nSet = 0;
 	hSet = "";
 	tSet = "";
-	for (int i=0;i<argc;++i) {
-		printf("%s\n",argv[i]);
+	for (int i = 0; i<argc; ++i) {
+		printf("%s\n", argv[i]);
+	}
+	bool flag = false;
+	bool flag_n = false;
+	if (argc <= 2) {
+		// å‚æ•°æ•°é‡å‡ºç°é—®é¢˜
+		writeError(2);
 	}
 	for (int i = 1; i<argc - 1;) {
 		printf("%s\n", argv[i]);
-		if (!stricmp("-w", argv[i])) {
-			if (!wcFlag) {
-				// ±¨´í
-				writeError(2);
+		if (!strcmp("-w", argv[i])) {
+			if (flag) {
+				// æŠ¥é”™
+				writeError(6);
 			}
 			printf("wSet!\n");
 			wcFlag = true;
+			flag = true;
 			++i;
 		}
-		else if (!stricmp("-c", argv[i])) {
-			if (wcFlag) {
-				// ±¨´í
-				writeError(2);
+		else if (!strcmp("-c", argv[i])) {
+			if (flag) {
+				// æŠ¥é”™
+				writeError(6);
 			}
 			printf("cSet!\n");
 			wcFlag = false;
+			flag = true;
 			++i;
 		}
-		else if (!stricmp("-h", argv[i])) {
-			if (hSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
-				// ±¨´í
+		else if (!strcmp("-h", argv[i])) {
+			for (int j = 0; j < strlen(argv[i + 1]); j++) {
+				if (argv[i + 1][j]<97 || argv[i + 1][j]>122 || i + 1 >= argc - 1) {
+					// æŠ¥é”™
+					writeError(4);
+				}
+			}
+			
+			if (hSet != "") {
 				writeError(2);
 			}
 			printf("hSet! and hSet is %s\n", argv[i + 1]);
 			hSet = argv[i + 1];
 			i += 2;
 		}
-		else if (!stricmp("-t", argv[i])) {
-			if (tSet != "" && (argv[i + 1][0]<97 || argv[i + 1][0]>122)) {
-				// ±¨´í
+		else if (!strcmp("-t", argv[i])) {
+			
+			for (int j = 0; j < strlen(argv[i + 1]); j++) {
+				if (argv[i + 1][j]<97 || argv[i + 1][j]>122 || i + 1 >= argc - 1) {
+					// æŠ¥é”™
+					writeError(5);
+				}
+			}
+			if (tSet != "") {
 				writeError(2);
 			}
 			printf("tSet! and tSet is %s\n", argv[i + 1]);
 			tSet = argv[i + 1];
 			i += 2;
 		}
-		else if (!stricmp("-n", argv[i])) {
-			if (nSet>0 && (argv[i + 1][0] < 49 || argv[i + 1][0] > 57)) {
-				// ±¨´í
+		else if (!strcmp("-n", argv[i])) {
+			printf("dsfsdfds %d", argv[i + 1][0]);
+			int n_num = 0;
+			try {
+				n_num = std::stoi(argv[i + 1]);
+			}
+			catch (std::invalid_argument&) {
+				writeError(3);
+			}
+
+			if (flag) {
+				writeError(6);
+			}
+			else if (flag_n) {
 				writeError(2);
 			}
-			printf("nSet! and nSet is %d\n", argv[i + 1][0] - 48);
-			nSet = argv[i + 1][0] - 48;
+			printf("nSet! and nSet is %d\n", n_num);
+			nSet = n_num;
+			flag_n = true;
 			i += 2;
 		}
 		else {
-			// ³öÏÖ²»·ûºÏÃüÁî²ÎÊıµÄ²ÎÊı£¬±¨´í
+			// å‡ºç°ä¸ç¬¦åˆå‘½ä»¤å‚æ•°çš„å‚æ•°ï¼ŒæŠ¥é”™
 			writeError(2);
 			++i;
 		}
-		// ·Ç·¨ÃüÁî×éºÏ´íÎó
-		/*if ((wSet && cSet) || (wSet && nSet != 0) || (cSet && nSet != 0)) {
-			// ´íÎó
-			writeError(2);
-		}*/
 	}
 }
 
@@ -243,9 +317,9 @@ void hSearch() {
 	WordNode* Tmp;
 	if (!tSet.empty()) {
 		sort(tSet.begin(), tSet.end());
-		tSet.erase(unique(tSet.begin(), tSet.end()), tSet.end());//tSetÈ¥ÖØ×Ö·û
+		tSet.erase(unique(tSet.begin(), tSet.end()), tSet.end());//tSetå»é‡å­—ç¬¦
 	}
-	
+
 	if (!nFlag) {
 		if (hSet.empty()) {
 			for (int i = 0; i < 26; i++) {
@@ -266,7 +340,7 @@ void hSearch() {
 		}
 		else {
 			sort(hSet.begin(), hSet.end());
-			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSetÈ¥ÖØ×Ö·û
+			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSetå»é‡å­—ç¬¦
 			for (unsigned int i = 0; i < hSet.length(); i++) {
 				int num = hSet[i] - 97;
 				Tmp = wordList[num];
@@ -284,17 +358,44 @@ void hSearch() {
 				}
 			}
 		}
+		writeResult(1);
 	}
 	else {
+		nowNode = new WordNode();
+		nowList = nowNode;
+		for (int i = 1; i < nSet; i++) {//init nowlist as n length
+			Tmp = new WordNode();
+			nowNode->next = Tmp;
+			nowNode = nowNode->next;
+		}
+
 		if (hSet.empty()) {
 			for (int i = 0; i < 26; i++) {
 				Tmp = wordList[i];
 				while (Tmp->word != "") {
 					nowLen++;
-					nowList = new WordNode(Tmp->word);
+					nowList->word = Tmp->word;
 					nowNode = nowList;
 					Tmp->uFlag = true;
-					nSearch(Tmp->tail);
+					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
+						nSearch(wordList[Tmp->tail], 1);
+					}
+					else {//n == odd, then 2 step each time
+						for (auto & i : Tmp->next2) {
+							if (isRepeat(i)) continue;
+							nowNode = nowList->next;
+							nowNode->word = i->Word1st->word;
+							nowNode->next->word = i->Word2st->word;
+							nowNode = nowNode->next;
+							nowLen += 2;
+							i->Word1st->uFlag = true;
+							i->Word2st->uFlag = true;
+							nSearch(i->Word2st, 2);
+							nowLen -= 2;
+							i->Word1st->uFlag = false;
+							i->Word2st->uFlag = false;
+						}
+					}
 					Tmp->uFlag = false;
 					Tmp = Tmp->next;
 					nowLen = 0;
@@ -303,16 +404,34 @@ void hSearch() {
 		}
 		else {
 			sort(hSet.begin(), hSet.end());
-			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSetÈ¥ÖØ×Ö·û
+			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSetå»é‡å­—ç¬¦
 			for (unsigned int i = 0; i < hSet.length(); i++) {
 				int num = hSet[i] - 97;
 				Tmp = wordList[num];
 				while (Tmp->word != "") {
 					nowLen++;
-					nowList = new WordNode(Tmp->word);
+					nowList->word = Tmp->word;
 					nowNode = nowList;
 					Tmp->uFlag = true;
-					nSearch(Tmp->tail);
+					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
+						nSearch(wordList[Tmp->tail], 1);
+					}
+					else {//n == odd, then 2 step each time
+						for (auto & i : Tmp->next2) {
+							if (isRepeat(i)) continue;
+							nowNode = nowList->next;
+							nowNode->word = i->Word1st->word;
+							nowNode->next->word = i->Word2st->word;
+							nowNode = nowNode->next;
+							nowLen += 2;
+							i->Word1st->uFlag = true;
+							i->Word2st->uFlag = true;
+							nSearch(i->Word2st, 2);
+							nowLen -= 2;
+							i->Word1st->uFlag = false;
+							i->Word2st->uFlag = false;
+						}
+					}
 					Tmp->uFlag = false;
 					Tmp = Tmp->next;
 					nowLen = 0;
@@ -323,8 +442,9 @@ void hSearch() {
 }
 
 void fSearch(int rank) {
+	if (difftime(time(NULL), startTime) > 59) return;
 	WordNode* Tmp = wordList[rank];
-	while ( Tmp->word != "") {
+	while (Tmp->word != "") {
 		if (Tmp->uFlag == true) {
 			Tmp = Tmp->next;
 			continue;
@@ -439,17 +559,20 @@ void fSearch(int rank) {
 	}
 }
 
-void nSearch(int rank) {
-	WordNode* Tmp = wordList[rank];
-	while (Tmp->word != "") {
+void nSearch(WordNode *now, int step) {
+	if (difftime(time(NULL), startTime) > 59) return;
+	WordNode* Tmp = now;
+	//one step:
+	while (step == 1 && Tmp->word != "") {
 		if (Tmp->uFlag == true) {
 			Tmp = Tmp->next;
 			continue;
 		}
 		Tmp->uFlag = true;
-		WordNode *newNode = new WordNode(Tmp->word);
-		nowNode->next = newNode;
-		nowNode = newNode;
+		nowNode = nowList;
+		for (int i = 1; i <= nowLen; i++) nowNode = nowNode->next;//right position at list
+		nowNode->word = Tmp->word;
+		nowNode = nowNode->next;
 		nowLen++;
 		if (nowLen == nSet) {
 			if (!tSet.empty()) {
@@ -461,61 +584,74 @@ void nSearch(int rank) {
 					}
 				}
 				if (!tailFlag) {
-					nowLen--;
-					Tmp = nowList;
-					if (Tmp == NULL) return;
-					if (Tmp->next == NULL) nowList = NULL;
-					else {
-						while (Tmp->next->next != NULL)
-						{
-							Tmp = Tmp->next;
-						}
-						Tmp->next = NULL;
-						nowNode = Tmp;
-					}
-					return;
+					continue;
 				}
 			}
-			nowLen --;
 			nListNum++;
-			
-			WordNode *Tmpp = nowList;
-			WordNode *newNode = new WordNode(Tmpp->word);
-			if (maxNode == NULL) {
-				maxNode = newNode;
-				maxList = maxNode;
-			}
-			else {
-				maxNode->next = newNode;
-				maxNode = maxNode->next;
-			}
-			Tmpp = Tmpp->next;
-			while (Tmpp != NULL) {
-				newNode = new WordNode(Tmpp->word);
-				maxNode->next = newNode;
-				maxNode = newNode;
-				Tmpp = Tmpp->next;
-			}
-			
-			Tmpp = nowList;
-			if (Tmpp == NULL) ;
-			if (Tmpp->next == NULL) nowList = NULL;
-			else {
-				while (Tmpp->next->next != NULL)
-				{
-					Tmpp = Tmpp->next;
-				}
-				Tmpp->next = NULL;
-				nowNode = Tmpp;
+			writeResult(2);
+			//output nowList!! func?
+		}
+
+		else {
+			for (auto & i : Tmp->next2) {
+				if (isRepeat(i)) continue;//if repeat, then skip it 
+				nowNode = nowList;
+				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
+				nowNode->word = i->Word1st->word;
+				nowNode->next->word = i->Word2st->word;
+				nowNode = nowNode->next;
+				nowLen += 2;
+				i->Word1st->uFlag = true;
+				i->Word2st->uFlag = true;
+				nSearch(i->Word2st, 2);
+				nowLen -= 2;
+				i->Word1st->uFlag = false;
+				i->Word2st->uFlag = false;
 			}
 		}
-		
-		else nSearch(nowNode->tail);
+		nowLen--;
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
 
-	if (Tmp->word == "") {
+	if (step == 2) {
+		if (nowLen == nSet) {
+			if (!tSet.empty()) {
+				bool tailFlag = false;
+				for (unsigned int i = 0; i < tSet.length(); i++) {
+					if (nowNode->tail == tSet[i] - 97) {
+						tailFlag = true;
+						break;
+					}
+				}
+				if (!tailFlag) {
+					return;
+				}
+			}
+			nListNum++;
+			writeResult(2);
+		}
+
+		else {
+			for (auto & i : now->next2) {
+				if (isRepeat(i)) continue;
+				nowNode = nowList;
+				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
+				nowNode->word = i->Word1st->word;
+				nowNode->next->word = i->Word2st->word;
+				nowNode = nowNode->next;
+				nowLen += 2;
+				i->Word1st->uFlag = true;
+				i->Word2st->uFlag = true;
+				nSearch(i->Word2st, 2);
+				nowLen -= 2;
+				i->Word1st->uFlag = false;
+				i->Word2st->uFlag = false;
+			}
+		}
+	}
+
+	if (Tmp->word == "" && step == 1) {
 		if (!tSet.empty()) {
 			bool tailFlag = false;
 			for (unsigned int i = 0; i < tSet.length(); i++) {
@@ -525,79 +661,54 @@ void nSearch(int rank) {
 				}
 			}
 			if (!tailFlag) {
-				nowLen--;
-				Tmp = nowList;
-				if (Tmp == NULL) return;
-				if (Tmp->next == NULL) nowList = NULL;
-				else {
-					while (Tmp->next->next != NULL)
-					{
-						Tmp = Tmp->next;
-					}
-					nowNum -= Tmp->next->len;
-					Tmp->next = NULL;
-					nowNode = Tmp;
-				}
 				return;
 			}
 		}
 		if (nowLen == nSet) {
-			nowLen--;
+			if (!tSet.empty()) {
+				bool tailFlag = false;
+				for (unsigned int i = 0; i < tSet.length(); i++) {
+					if (nowNode->tail == tSet[i] - 97) {
+						tailFlag = true;
+						break;
+					}
+				}
+				if (!tailFlag) {
+					return;
+				}
+			}
 			nListNum++;
-
-			WordNode *Tmpp = nowList;
-			WordNode *newNode = new WordNode(Tmp->word);
-			if (maxNode == NULL) maxNode = newNode;
-			else {
-				maxNode->next = newNode;
-				maxNode = maxNode->next;
-			}
-			Tmpp = Tmpp->next;
-			while (Tmpp != NULL) {
-				newNode = new WordNode(Tmpp->word);
-				maxNode->next = newNode;
-				maxNode = newNode;
-				Tmpp = Tmpp->next;
-			}
-
-			Tmpp = nowList;
-			if (Tmpp == NULL) return;
-			if (Tmpp->next == NULL) nowList = NULL;
-			else {
-				while (Tmpp->next->next != NULL)
-				{
-					Tmpp = Tmpp->next;
-				}
-				Tmpp->next = NULL;
-				nowNode = Tmpp;
-			}
-			return;
-		}
-		else {
-			nowLen--;
-			Tmp = nowList;
-			if (Tmp == NULL) return;
-			if (Tmp->next == NULL) nowList = NULL;
-			else {
-				while (Tmp->next->next != NULL)
-				{
-					Tmp = Tmp->next;
-				}
-				nowNum -= Tmp->next->len;
-				Tmp->next = NULL;
-				nowNode = Tmp;
-			}
-			return;
+			writeResult(2);
 		}
 	}
 }
 
-
+bool isRepeat(WordTwo* n) {
+	if (n->Word1st->uFlag == false && n->Word2st->uFlag == false) return false;
+	return true;
+}
 
 int main(int argc, char* argv[]) {
 	parseCommandLineEnter(argc, argv);
+	/******æ¸…ç©ºsolution.txtæ–‡ä»¶ï¼Œå¹¶æ‰“å¼€ç­‰å¾…å†™å…¥,æ³¨æ„ åªé’ˆå¯¹-nå‚æ•°s*******/
+	if (nSet>0) {
+		outfile.open("solution.txt");
+		outfile.close();
+		outfile.open("solution.txt");
+		outfile << "                   " << "\n";
+	}
+	/****************/
 	gen(inputFileName);
 	hSearch();
-	if (nFlag) writeResult(2);
-	else writeResult(1);
+	outfile.close();
+	/******å¯¹äº-nï¼Œéœ€è¦å†™å…¥æ•°å­—*******/
+	if (nSet > 0) {
+		outfile.open("solution.txt", ios::binary | ios::out | ios::in);
+		outfile.seekp(0, ios::beg);
+		outfile << to_string(nListNum) << "";
+		outfile.close();
+	}
+
+	/*************/
+	return 0;
 }
