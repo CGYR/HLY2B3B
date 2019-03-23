@@ -4,10 +4,15 @@ import home from '@/components/home'
 
 import mainsearch from '@/components/mainsearch'
 import labone from '@/components/labone'
+import labhome from '@/components/labhome'
+import labtwo from '@/components/labtwo'
+import labthree from '@/components/labthree'
+import lababout from '@/components/lababout'
 
 Vue.use(Router)
 
 export default new Router({
+  mode:'history',
   routes: [
     {
       path: '/', //网站主页
@@ -15,12 +20,27 @@ export default new Router({
       component: home,
       children:[
         {
+          path: '/',
+          component: labhome,
+        },
+        {
           path: 'mainsearch',
           component: mainsearch,
         },
         {
           path: 'labone',
           component: labone,
+        },
+        {
+          path: 'labtwo',
+          component: labtwo,
+        },
+        {
+          path: 'labthree',
+          component: labthree,
+        },{
+          path: 'lababout',
+          component: lababout,
         }
       ]
     },

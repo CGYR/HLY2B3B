@@ -14,7 +14,7 @@ Vue.config.productionTip = false;
 import axios from 'axios';//引入axios组件
 axios.defaults.withCredentials=true;  //跨域保存session有用
 axios.defaults.baseURL = "http://localhost:3000"; //打包的时候直接删掉，默认基础路径在这里配置
-//上述值在打包时需要替换成本机的IP http://222.195.87.40:3000 localhost
+//上述值在部署时换成外网地址
 
 //将 axios 赋值给 Vue，方便在子组件里面使用
 Vue.prototype.$reqs = axios;

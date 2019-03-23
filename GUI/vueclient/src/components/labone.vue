@@ -4,7 +4,6 @@
     </div>
       <!-- 内容部分 -->
       <el-card class="box-card" >
-        <!-- 文件上传和内容输入  -->
         <el-row>
           <el-col :span="24">
             <el-switch
@@ -59,7 +58,6 @@
         </el-row>
         </div>
       </el-card>
-      <div style="height:2px"></div>
       <el-card>
         <el-row>
           选择输入参数
@@ -70,7 +68,9 @@
             <el-switch
               v-model="w_set"
               active-color="#13ce66"
-              inactive-color="#ff4949">
+              inactive-color="#ff4949"
+              :change="sayHellotest"
+              >
             </el-switch>
           </el-col>
           <el-col :span="4">
@@ -141,17 +141,18 @@
         </el-row>
         <div style="height:4px"></div>
         <el-row>
-        Worldlist.exe <span v-if="w_set">-w</span> <span v-if="c_set">-c</span>
-        <span v-if="h_set">-h {{h_input}}</span>
-        <span v-if="t_set">-t {{t_input}}</span>
-        <span v-if="n_set">-n {{n_input}}</span>
-        absolute_path_of_word_list
+          <span style="color:orange">Worldlist.exe</span> <span v-if="w_set" style="font-weight: bold">-w</span> <span v-if="c_set" style="font-weight: bold">-c</span>
+        <span v-if="h_set" style="font-weight: bold">-h {{h_input}}</span>
+        <span v-if="t_set" style="font-weight: bold">-t {{t_input}}</span>
+        <span v-if="n_set" style="font-weight: bold">-n {{n_input}}</span>
+          <span style="color:orange">absolute_path_of_word_list</span>
         </el-row>
       </el-card>
       <!-- 确认部分 -->
       <el-card>
         <div align="center">
         <el-button type="success" round @click="executeWordlist">点击执行Worldlist.exe程序</el-button>
+          <el-button v-bind:type="output_button_color" v-bind:disabled="output_disabled" round @click="download">导出结果</el-button>
         </div>
       </el-card>
   </div>
@@ -173,12 +174,96 @@
           t_input: '',
           n_input: '',
           wordoutput: '',
+          hasresult: false, // 用于区别是否已有输出结果
+          output_button_color:"info",
+          output_disabled:true,
         }
       },
+      watch:{
+        w_set: function(){
+          if(this.c_set || this.n_set){
+            this.w_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        },
+        c_set: function(){
+          if(this.w_set || this.n_set){
+            this.c_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        },
+        n_set: function(){
+          if(this.w_set || this.c_set){
+            this.n_set = false;
+            this.showError("-w -c -n只能设置其中一个")
+          }
+        },
+        hasresult(){
+          if(this.hasresult == false){
+            this.output_button_color = "info"
+            this.output_disabled = true
+          }else if(this.hasresult == true){
+            this.output_button_color = "primary"
+            this.output_disabled = false
+          }
+        }
+
+        /* 这个在部署到网站上后需要加上*/
+        /*
+        upload_or_enter_set: function(){
+          if(this.upload_or_enter_set == false){
+            this.upload_or_enter_set = true;
+            this.showError("为了网站安全，网站版本不允许上传文件，若想使用该功能请使用本地运行的版本")
+          }
+        }*/
+      },
       methods: {
+        showError(words){
+          this.$message({
+            message: words,
+            type: 'warning',
+            showClose: true,
+            duration:2000,
+          })
+        },
         executeWordlist(){
-          console.log("bengin executeWordlist")
+          // 防止
+          if(!this.c_set && !this.w_set && !this.n_set){
+            // 报错 至少需要设置一个
+            this.showError("-w -c -n至少设置一个")
+            return;
+          }else if( this.h_set && this.h_input == ""){
+            // 报错
+            this.showError("-h 参数没有设置输入的字母")
+            return;
+          }else if( this.t_set && this.t_input == ""){
+            // 报错
+            this.showError("-t 参数没有设置输入的字母")
+            return;
+          }else if( this.n_set && this.n_input == ""){
+            // 报错
+            this.showError("-n 参数没有设置输入的数字")
+            return;
+          }else if(this.h_set && this.h_input.length >= 2){
+            this.showError("-h 只能设置一个值")
+            return;
+          }else if(this.t_set && this.t_input.length >= 2){
+            this.showError("-t 只能设置一个值")
+            return;
+          }else if((/[^a-z]/gi.test(this.h_input))){
+            this.showError("-h 只能是小写的字母")
+            return;
+          }else if((/[^a-z]/gi.test(this.t_input))){
+            this.showError("-t 只能是小写的字母")
+            return;
+          }else if((/\D/gi.test(this.n_input))){
+            this.showError("-n 只能是一个整数")
+            return;
+          }
+          console.log(this.wordinput)
+          console.log("begin executeWordlist")
           var _this = this;
+          _this.hasresult = false;
           this.$reqs.post("/labone/labone_executeWorldlist",{
             wordinfo:{
               upload_or_enter_set:this.upload_or_enter_set,
@@ -200,12 +285,65 @@
               // console.log(result.data.mainJson);
               console.log(result.data);
               _this.wordoutput = result.data;
+              if(_this.wordoutput == "\n"){
+                _this.wordoutput = "没有得到结果"
+              }
+              _this.hasresult = true;
             }
           }).catch(function (error) {
+            console.log(error)
             console.log("发送执行信息失败")
           });
+          console.log("begin execute time")
+          this.waitTime();
         },
-
+        //倒计时
+        waitTime(){
+          var a=-1;
+          console.log(this.hasresult)
+          var id=setInterval(()=>{
+            a=a+1
+            console.log(this.hasresult)
+            if(this.hasresult){
+              clearInterval(id);
+              return;
+            }
+            this.wordoutput = "程序正在运行，请等待...\n最多剩余时间" + (50-a*10)+"s"
+            if(a===6){
+              if(this.w_set){
+                this.wordoutput = "-w 指令执行超时，强制结束";
+              }
+              clearInterval(id);
+            }
+          },10000);
+          this.wordoutput = "程序正在运行，请等待...\n最多剩余时间60s"
+        },
+        download(){
+          console.log("download")
+          var _this = this;
+          _this.output_button_color = "info"
+          _this.output_disabled = true
+          this.$reqs.get("/labone/download",{
+            params:{
+              name:'solution.txt',
+            }
+          }).then(function(result){
+            //成功
+            if(result.data.err){
+              alert(result.data.err);
+            }else {
+              console.log("download success!")
+              console.log("dd"+result.data.success);
+              window.open('http://localhost:3000/labone/download?name=solution.txt');
+            }
+          }).catch(function (error) {
+            //失败
+            console.log("download faild"+error);
+          });
+        },
+        sayHellotest(){
+          console.log("hellow");
+        }
       },
     }
 </script>

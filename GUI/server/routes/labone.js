@@ -13,21 +13,55 @@ router.post('/labone_executeWorldlist', function(req, res, next) {
     console.log("labone_executeWorldlist 后端开始执行!");
     console.log(req.body);
 
-    console.log(__dirname);
     wordinput = req.body.wordinfo.wordinput;
     // 后期可能需要修改路径
     des_file = __dirname+ "/../absolute_path_of_word_list";
-    fs.writeFileSync(des_file, wordinput, 'utf8');
-    console.log("成功写入文件")
-
     // 执行程序部分
-
-    // 这是测试demo
+    var parameter = req.body.wordinfo;
+    // 首先判断何种上传方式
+    if(parameter.upload_or_enter_set){
+        // 输入上传
+        fs.writeFileSync(des_file, wordinput, 'utf8');
+        console.log("成功写入文件")
+    }
+    // 否则说明是文件方式上传，此处无需处理
     try{
-        process.execSync('./yx -w');
+        if(parameter.w_set){
+            console.log("!!!")
+            if(parameter.h_set && parameter.t_set) {
+                process.execSync('./y -w -h '+parameter.h_input+' -t '+ parameter.t_input +' absolute_path_of_word_list');
+            }else if(parameter.h_set){
+                process.execSync('./y -w -h '+parameter.h_input+' absolute_path_of_word_list');
+            }else if(parameter.t_set){
+                process.execSync('./y -w -t '+parameter.t_input+' absolute_path_of_word_list');
+            }else{
+                process.execSync('./y -w absolute_path_of_word_list');
+            }
+        }else if(parameter.c_set){
+            if(parameter.h_set && parameter.t_set) {
+                process.execSync('./y -c -h '+parameter.h_input+' -t '+ parameter.t_input +' absolute_path_of_word_list');
+            }else if(parameter.h_set){
+                process.execSync('./y -c -h '+parameter.h_input+' absolute_path_of_word_list');
+            }else if(parameter.t_set){
+                process.execSync('./y -c -t '+parameter.t_input+' absolute_path_of_word_list');
+            }else{
+                process.execSync('./y -c absolute_path_of_word_list');
+            }
+        }else if(parameter.n_set){
+            if(parameter.h_set && parameter.t_set) {
+                process.execSync('./y -n '+parameter.n_input+' -h '+parameter.h_input+' -t '+ parameter.t_input +' absolute_path_of_word_list');
+            }else if(parameter.h_set){
+                process.execSync('./y -n '+parameter.n_input+' -h '+parameter.h_input+' absolute_path_of_word_list');
+            }else if(parameter.t_set){
+                process.execSync('./y -n '+parameter.n_input+' -t '+parameter.t_input+' absolute_path_of_word_list');
+            }else{
+                process.execSync('./y -n '+parameter.n_input+' absolute_path_of_word_list');
+            }
+        }
+
     }catch(ex){
+        // 这里还需要增加一个执行错误报错
         console.log("fuck")
-        console.log(ex)
     }
     // 向前端发送搜索到的数据
 
@@ -37,7 +71,9 @@ router.post('/labone_executeWorldlist', function(req, res, next) {
     des_file = __dirname + "/../solution.txt";
 
     var result = fs.readFileSync(des_file).toString();
-
+    if(result.length>10000){
+        result = result.substring(0,10000)+"......\n(为了快速渲染，后面结果省略，可直接导出文件查看)"
+    }
     console.log(result);
     res.send(result);
     res.end('{"success":"true"}');
@@ -58,9 +94,6 @@ router.post("/file_upload",function(req,res,next){
     form.maxFieldsSize = 20 * 1024 * 1024;
 
     form.parse(req,function(err,fields,files){
-        console.log("2");
-        console.log(files);
-
         let filesFile = files.file;
         if (err) {
             return res.json({
@@ -78,32 +111,7 @@ router.post("/file_upload",function(req,res,next){
                 result:''
             })
         }
-        //后缀名
-        // var extName = 'csv';
-        /*
-        switch (filesFile.type) {
-            case 'image/jpg':
-                extName = 'jpg';
-                break;
-            case 'image/jpeg':
-                extName = 'jpg';
-                break;
-            case 'image/png':
-                extName = 'png';
-                break;
-            case 'image/x-png':
-                extName = 'png';
-                break;
-        }
-        if (extName.length == 0) {
-            return res.json({
-                status: '1',
-                msg: "只支持png和jpg格式图片",
-                result:''
-            })
-        }*/
-        var avatarName = "solution.txt";
-        // 新图片路径
+        var avatarName = "absolute_path_of_word_list";
         var newPath = uploadDir + avatarName;
         fs.readFile(filesFile.path, function (err, data) {
             if (err) {
@@ -131,4 +139,32 @@ router.post("/file_upload",function(req,res,next){
     })
 });
 
+// 下载文件
+router.get('/download',function(req, res, next){
+    console.log("download begin!");
+    console.log(__dirname);
+    var fileName = req.query.name;
+    console.log(fileName);
+    var currFile = __dirname + '/../' + fileName;
+    console.log(currFile);
+    var fReadStream = fs.createReadStream(currFile);
+    console.log(currFile);
+    fs.exists(currFile,function(exist) {
+        if(exist){
+            res.set({
+                "Content-type":"application/octet-stream",
+                "Content-Disposition":"attachment;filename="+encodeURI(fileName)
+            });
+            fReadStream = fs.createReadStream(currFile);
+            fReadStream.on("data",(chunk) => res.write(chunk,"binary"));
+            fReadStream.on("end",function () {
+                res.end();
+            });
+        }else{
+            res.set("Content-type","text/html");
+            res.send("file not exist!");
+            res.end();
+        }
+    });
+});
 module.exports = router;
