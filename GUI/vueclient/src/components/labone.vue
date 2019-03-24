@@ -313,6 +313,12 @@
               if(this.w_set){
                 this.wordoutput = "-w 指令执行超时，强制结束";
               }
+              if(this.c_set){
+                this.wordoutput = "-c 指令执行超时，强制结束";
+              }
+              if(this.n_set){
+                this.wordoutput = "-n 指令执行超时，强制结束";
+              }
               clearInterval(id);
             }
           },10000);

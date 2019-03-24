@@ -37,7 +37,7 @@ WordNode::WordNode(string inw)
 	word = inw;
 	len = word.length();
 	head = word[0] - 97;
-	tail = word[word.length()-1] - 97;
+	tail = word[word.length() - 1] - 97;
 }
 
 WordNode::WordNode(WordNode* inNode) {
@@ -49,19 +49,19 @@ WordNode::WordNode(WordNode* inNode) {
 
 WordNode::WordNode()
 {
-	
+
 }
 
 
 WordNode::~WordNode()
 {
-	
+
 }
 
-class WordTwo{
+class WordTwo {
 public:
 	friend class WordNode;
-	WordTwo(WordNode*n1,WordNode*n2);
+	WordTwo(WordNode*n1, WordNode*n2);
 	~WordTwo();
 	WordNode* Word1st = NULL;
 	WordNode* Word2st = NULL;
@@ -88,28 +88,29 @@ WordNode* headNow = NULL;
 list<WordNode*> nList;
 WordNode* nowList = NULL;
 WordNode* nowNode = NULL;
-int nowLen=0;
-int maxLen=0;
-int nowNum=0;
-int maxNum=0;
-bool wcFlag = true;//ÅÐ¶¨×î³¤´ÊÁ´·½Ê½£º-w¶ÔÓ¦true£¨×ÜÊý×î¶à£©£¬-c¶ÔÓÚfalse£¨×ÖÄ¸Êý×î¶à£©
-bool nFlag = false;//Êä³ö¶¨³¤£¬ÓÅÏÈ¼¶¸ßÓÚwcFlag
-int nListNum = 0;//-n¶ÔÓ¦µÄÕÒµ½µÄµ¥´ÊµÄÊýÄ¿
-int nSet = 0;//-n¶ÔÓ¦µÄnÖµ
-string hSet = "";//ÏÞ¶¨Í·×ÖÄ¸µÄ¼¯ºÏ
-string tSet = "";//ÏÞ¶¨Î²×ÖÄ¸µÄ¼¯ºÏ
+int nowLen = 0;
+int maxLen = 0;
+int nowNum = 0;
+int maxNum = 0;
+bool wcFlag = true;//ï¿½Ð¶ï¿½ï¿½î³¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½-wï¿½ï¿½Ó¦trueï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à£©ï¿½ï¿½-cï¿½ï¿½ï¿½ï¿½falseï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½à£©
+bool nFlag = false;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½wcFlag
+int nListNum = 0;//-nï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Òµï¿½ï¿½Äµï¿½ï¿½Êµï¿½ï¿½ï¿½Ä¿
+int nSet = 0;//-nï¿½ï¿½Ó¦ï¿½ï¿½nÖµ
+string hSet = "";//ï¿½Þ¶ï¿½Í·ï¿½ï¿½Ä¸ï¿½Ä¼ï¿½ï¿½ï¿½
+string tSet = "";//ï¿½Þ¶ï¿½Î²ï¿½ï¿½Ä¸ï¿½Ä¼ï¿½ï¿½ï¿½
 string inputFileName;
 time_t startTime = time(NULL);
-bool timeFlag = false;
+time_t timenow = 0;
+time_t timelim = 53;
 int step = 1;
 int wordSum[26] = { 0 };
-ofstream outfile; // Êä³öÎÄ¼þ
+ofstream outfile; // ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 
 void writeResult(int mode);
 void writeError(int errorCode);
 bool gen(string path);
 void hSearch();
 void fSearch(int rank);
-void nSearch(WordNode*n,int step);
+void nSearch(WordNode*n, int step);
 void parseCommandLineEnter(int argc, char* argv[]);
 bool isRepeat(WordTwo* n);
