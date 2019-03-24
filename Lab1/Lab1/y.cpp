@@ -104,7 +104,7 @@ bool gen(string path) {
 			wordList[rank] = Node;
 		}
 	}
-
+	if (nSet == 0) return true;
 	WordNode *Tmp, *Tmpp;
 	for (int i = 0; i < 26 && nSet>2; i++) {
 		Tmp = wordList[i];
@@ -112,13 +112,17 @@ bool gen(string path) {
 		while (Tmp->word != "") {//find all word's follow 2 word list
 			for (Tmpp = wordList[Tmp->tail]; Tmpp->word != ""; Tmpp = Tmpp->next) {
 				for (WordNode* Tmppp = wordList[Tmpp->tail]; Tmppp->word != ""; Tmppp = Tmppp->next) {
+					if (Tmp == Tmpp || Tmp == Tmppp || Tmpp == Tmppp) continue;
 					Tmp->next2.push_back(new WordTwo(Tmpp, Tmppp));
 				}
 			}
 			Tmp = Tmp->next;
 		}
 	}
-
+	
+	for (int i = 0; i < nSet * 2000; i++) {//2000 lists output 
+		buffList.push_back(new WordNode());
+	}
 	return true;
 }
 
@@ -132,7 +136,7 @@ void writeError(int errorCode) {
 	// 需要更多的错误，可添加
 	switch (errorCode) {
 	case 1: {
-		printf("文件不存在！！！！！\n");
+		printf("文件为空或不存在！！！！！\n");
 		outfile << "-1" << endl;
 		exit(0);
 	}
@@ -161,6 +165,16 @@ void writeError(int errorCode) {
 		outfile << "-6" << endl;
 		exit(0);
 	}
+	case 7: {
+		printf("无可行单词链！\n");
+		outfile << "-7" << endl;
+		exit(0);
+	}
+	case 8: {
+		printf("-n后的参数至少为2！\n");
+		outfile << "-8" << endl;
+		exit(0);
+	}
 	}
 	outfile.close();
 }
@@ -170,6 +184,7 @@ void writeError(int errorCode) {
 void writeResult(int mode) {
 	string result = "";
 	if (mode == 1) {
+		if (maxLen < 2 && maxNum < 2) writeError(7);
 		WordNode* nextNode = maxList;
 		while (nextNode != NULL) {
 			result = result + nextNode->word + "\n";
@@ -181,9 +196,9 @@ void writeResult(int mode) {
 		outfile.close();
 	}
 	else if (mode == 2) {
-		WordNode* nextNode = nowList;
+		//WordNode* nextNode = nowList;
 		int count = 1;
-		while (nextNode != NULL) {
+		/*while (nextNode != NULL) {
 			if (count != 1 && count%nSet == 0) {
 				result = result + nextNode->word + "\n\n";
 			}
@@ -192,6 +207,15 @@ void writeResult(int mode) {
 			}
 			count++;
 			nextNode = nextNode->next;
+		}*/
+		for (int i = 0; i < 2000 && buffList[i]->word!=""; i++) {
+			if (count != 1 && count%nSet == 0) {
+				result = result + buffList[i]->word + "\n\n";
+			}
+			else {
+				result = result + buffList[i]->word + "\n";
+			}
+			count++;
 		}
 
 		//outfile.open("solution.txt",std::ios::app);
@@ -255,15 +279,15 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			++i;
 		}
 		else if (!strcmp("-h", argv[i])) {
-			for (int j = 0; j < strlen(argv[i + 1]); j++) {
+			for (unsigned int j = 0; j < strlen(argv[i + 1]); j++) {
 				if (argv[i + 1][j]<97 || argv[i + 1][j]>122 || i + 1 >= argc - 1) {
 					// 报错
-					writeError(4);
+					writeError(2);
 				}
 			}
 			
 			if (hSet != "") {
-				writeError(2);
+				writeError(4);
 			}
 			printf("hSet! and hSet is %s\n", argv[i + 1]);
 			hSet = argv[i + 1];
@@ -271,14 +295,14 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 		}
 		else if (!strcmp("-t", argv[i])) {
 			
-			for (int j = 0; j < strlen(argv[i + 1]); j++) {
+			for (unsigned int j = 0; j < strlen(argv[i + 1]); j++) {
 				if (argv[i + 1][j]<97 || argv[i + 1][j]>122 || i + 1 >= argc - 1) {
 					// 报错
-					writeError(5);
+					writeError(2);
 				}
 			}
 			if (tSet != "") {
-				writeError(2);
+				writeError(5);
 			}
 			printf("tSet! and tSet is %s\n", argv[i + 1]);
 			tSet = argv[i + 1];
@@ -293,6 +317,8 @@ void parseCommandLineEnter(int argc, char* argv[]) {
 			catch (std::invalid_argument&) {
 				writeError(3);
 			}
+
+			if (n_num < 2) writeError(8);
 
 			if (flag) {
 				writeError(6);
@@ -324,9 +350,11 @@ void hSearch() {
 		if (hSet.empty()) {
 			for (int i = 0; i < 26; i++) {
 				Tmp = wordList[i];
+				if (timenow-startTime > timelim) { writeResult(1); return; }
 				while (Tmp->word != "") {
+					if (timenow - startTime > timelim) { writeResult(1); return; }
 					nowLen++;
-					nowNum += Tmp->len;
+					nowNum += Tmp->len;//nowNum: sum of char
 					nowList = new WordNode(Tmp->word);
 					nowNode = nowList;
 					Tmp->uFlag = true;
@@ -342,9 +370,11 @@ void hSearch() {
 			sort(hSet.begin(), hSet.end());
 			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
 			for (unsigned int i = 0; i < hSet.length(); i++) {
+				if (timenow - startTime > timelim) { writeResult(1); return; }
 				int num = hSet[i] - 97;
-				Tmp = wordList[num];
+				Tmp = wordList[num];//choose word's begin with chars in hSet
 				while (Tmp->word != "") {
+					if (timenow - startTime > timelim) { writeResult(1); return; }
 					nowLen++;
 					nowNum += Tmp->len;
 					nowList = new WordNode(Tmp->word);
@@ -372,9 +402,12 @@ void hSearch() {
 		if (hSet.empty()) {
 			for (int i = 0; i < 26; i++) {
 				Tmp = wordList[i];
+				if (timenow - startTime > timelim) {return; }
 				while (Tmp->word != "") {
+					if (timenow - startTime > timelim) { return; }
 					nowLen++;
 					nowList->word = Tmp->word;
+					nowList->tail = Tmp->tail;
 					nowNode = nowList;
 					Tmp->uFlag = true;
 					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
@@ -383,9 +416,12 @@ void hSearch() {
 					else {//n == odd, then 2 step each time
 						for (auto & i : Tmp->next2) {
 							if (isRepeat(i)) continue;
+							if (timenow - startTime > timelim) { return; }
 							nowNode = nowList->next;
 							nowNode->word = i->Word1st->word;
+							nowNode->tail = i->Word1st->tail;
 							nowNode->next->word = i->Word2st->word;
+							nowNode->next->tail = i->Word2st->tail;
 							nowNode = nowNode->next;
 							nowLen += 2;
 							i->Word1st->uFlag = true;
@@ -406,11 +442,14 @@ void hSearch() {
 			sort(hSet.begin(), hSet.end());
 			hSet.erase(unique(hSet.begin(), hSet.end()), hSet.end());//hSet去重字符
 			for (unsigned int i = 0; i < hSet.length(); i++) {
+				if (timenow - startTime > timelim) { if (!isFull()) writeResult(2); return; }
 				int num = hSet[i] - 97;
 				Tmp = wordList[num];
 				while (Tmp->word != "") {
+					if (timenow - startTime > timelim) { if (!isFull()) writeResult(2); return; }
 					nowLen++;
 					nowList->word = Tmp->word;
+					nowList->tail = Tmp->tail;
 					nowNode = nowList;
 					Tmp->uFlag = true;
 					if (nSet % 2 == 0) {//n != odd, then one step first(after that, len == 2), and two step each
@@ -419,9 +458,12 @@ void hSearch() {
 					else {//n == odd, then 2 step each time
 						for (auto & i : Tmp->next2) {
 							if (isRepeat(i)) continue;
+							if (timenow - startTime > timelim) { if (!isFull()) writeResult(2); return; }
 							nowNode = nowList->next;
 							nowNode->word = i->Word1st->word;
+							nowNode->tail = i->Word1st->tail;
 							nowNode->next->word = i->Word2st->word;
+							nowNode->next->tail = i->Word2st->tail;
 							nowNode = nowNode->next;
 							nowLen += 2;
 							i->Word1st->uFlag = true;
@@ -438,17 +480,21 @@ void hSearch() {
 				}
 			}
 		}
+		if (!isFull()) writeResult(2);
 	}
 }
 
 void fSearch(int rank) {
-	if (difftime(time(NULL), startTime) > 59) return;
+	timenow = time(NULL);
+	if (timenow - startTime > timelim) return;//time limit, avoid ...
 	WordNode* Tmp = wordList[rank];
 	while (Tmp->word != "") {
-		if (Tmp->uFlag == true) {
+		if (timenow - startTime > timelim) return;
+		if (Tmp->uFlag == true) {//has searched, find next
 			Tmp = Tmp->next;
 			continue;
 		}
+		//insert into now list:
 		Tmp->uFlag = true;
 		WordNode *newNode = new WordNode(Tmp->word);
 		nowNode->next = newNode;
@@ -459,8 +505,9 @@ void fSearch(int rank) {
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
-	if (Tmp->word == "") {
-		if (!tSet.empty()) {
+	if (timenow - startTime > timelim) return;
+	if (Tmp->word == "") {//end of one search
+		if (!tSet.empty()) {//-ttttt
 			bool tailFlag = false;
 			for (unsigned int i = 0; i < tSet.length(); i++) {
 				if (nowNode->tail == tSet[i] - 97) {
@@ -468,7 +515,7 @@ void fSearch(int rank) {
 					break;
 				}
 			}
-			if (!tailFlag) {
+			if (!tailFlag) {//if tail not fit, then back search
 				nowLen--;
 				Tmp = nowList;
 				if (Tmp == NULL) return;
@@ -485,7 +532,7 @@ void fSearch(int rank) {
 				return;
 			}
 		}
-		if ((nowLen > maxLen) && wcFlag) {
+		if ((nowLen > maxLen) && wcFlag) {//update maxList
 			maxLen = nowLen;
 			Tmp = nowList;
 			WordNode *maxNode = new WordNode(Tmp->word);
@@ -497,7 +544,7 @@ void fSearch(int rank) {
 				maxNode = newNode;
 				Tmp = Tmp->next;
 			}
-
+			//back search:
 			nowLen--;
 			Tmp = nowList;
 			if (Tmp == NULL) return;
@@ -513,7 +560,7 @@ void fSearch(int rank) {
 			}
 			return;
 		}
-		else if ((nowNum > maxNum) && !wcFlag) {
+		else if ((nowNum > maxNum) && !wcFlag) {//update maxList
 			maxNum = nowNum;
 			Tmp = nowList;
 			WordNode *maxNode = new WordNode(Tmp->word);
@@ -534,7 +581,7 @@ void fSearch(int rank) {
 				{
 					Tmp = Tmp->next;
 				}
-				nowNum -= Tmp->next->len;
+				nowNum -= Tmp->next->len;//back search for nowNum
 				Tmp->next = NULL;
 				nowNode = Tmp;
 			}
@@ -560,10 +607,12 @@ void fSearch(int rank) {
 }
 
 void nSearch(WordNode *now, int step) {
-	if (difftime(time(NULL), startTime) > 59) return;
+	timenow = time(NULL);
+	if (timenow - startTime > timelim) { return; }
 	WordNode* Tmp = now;
 	//one step:
 	while (step == 1 && Tmp->word != "") {
+		if (timenow - startTime > timelim) { return; }
 		if (Tmp->uFlag == true) {
 			Tmp = Tmp->next;
 			continue;
@@ -572,9 +621,9 @@ void nSearch(WordNode *now, int step) {
 		nowNode = nowList;
 		for (int i = 1; i <= nowLen; i++) nowNode = nowNode->next;//right position at list
 		nowNode->word = Tmp->word;
-		nowNode = nowNode->next;
+		nowNode->tail = Tmp->tail;
 		nowLen++;
-		if (nowLen == nSet) {
+		if (nowLen == nSet) {//fit len
 			if (!tSet.empty()) {
 				bool tailFlag = false;
 				for (unsigned int i = 0; i < tSet.length(); i++) {
@@ -584,26 +633,47 @@ void nSearch(WordNode *now, int step) {
 					}
 				}
 				if (!tailFlag) {
+					nowLen--;
+					Tmp->uFlag = false;
+					Tmp = Tmp->next;
 					continue;
 				}
 			}
 			nListNum++;
-			writeResult(2);
-			//output nowList!! func?
+			buffNum++;
+			if (isFull()) {
+				buffNum = 0;
+				writeResult(2);
+				for (auto& i : buffList) i->word = "";//init
+				WordNode* TnNode = nowList;
+				for (int i = 0; i < nSet; i++) {
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
+			else {//insert nowList into buff
+				WordNode* TnNode = nowList;
+				for (int i = buffNum*nSet - nSet; i < buffNum*nSet; i++) {
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
+			
 		}
-
-		else {
+		else {//then 2 step
 			for (auto & i : Tmp->next2) {
 				if (isRepeat(i)) continue;//if repeat, then skip it 
 				nowNode = nowList;
 				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
 				nowNode->word = i->Word1st->word;
+				nowNode->tail = i->Word1st->tail;
 				nowNode->next->word = i->Word2st->word;
+				nowNode->next->tail = i->Word2st->tail;
 				nowNode = nowNode->next;
 				nowLen += 2;
 				i->Word1st->uFlag = true;
 				i->Word2st->uFlag = true;
-				nSearch(i->Word2st, 2);
+				nSearch(i->Word2st, 2);//searching by 2
 				nowLen -= 2;
 				i->Word1st->uFlag = false;
 				i->Word2st->uFlag = false;
@@ -613,7 +683,7 @@ void nSearch(WordNode *now, int step) {
 		Tmp->uFlag = false;
 		Tmp = Tmp->next;
 	}
-
+	if (timenow - startTime > timelim) { return; }
 	if (step == 2) {
 		if (nowLen == nSet) {
 			if (!tSet.empty()) {
@@ -629,7 +699,24 @@ void nSearch(WordNode *now, int step) {
 				}
 			}
 			nListNum++;
-			writeResult(2);
+			buffNum++;
+			if (isFull()) {//full
+				buffNum = 0;
+				writeResult(2);//output buff
+				for (auto& i : buffList) i->word = "";//init buff
+				WordNode* TnNode = nowList;
+				for (int i = 0; i < nSet; i++) {
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
+			else {//not full
+				WordNode* TnNode = nowList;
+				for (int i = buffNum*nSet - nSet; i < buffNum*nSet; i++) {//insert into right pos
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
 		}
 
 		else {
@@ -638,7 +725,9 @@ void nSearch(WordNode *now, int step) {
 				nowNode = nowList;
 				for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
 				nowNode->word = i->Word1st->word;
+				nowNode->tail = i->Word1st->tail;
 				nowNode->next->word = i->Word2st->word;
+				nowNode->next->tail = i->Word2st->tail;
 				nowNode = nowNode->next;
 				nowLen += 2;
 				i->Word1st->uFlag = true;
@@ -650,20 +739,10 @@ void nSearch(WordNode *now, int step) {
 			}
 		}
 	}
-
+	if (timenow - startTime > timelim) { return; }
 	if (Tmp->word == "" && step == 1) {
-		if (!tSet.empty()) {
-			bool tailFlag = false;
-			for (unsigned int i = 0; i < tSet.length(); i++) {
-				if (nowNode->tail == tSet[i] - 97) {
-					tailFlag = true;
-					break;
-				}
-			}
-			if (!tailFlag) {
-				return;
-			}
-		}
+		nowNode = nowList;
+		for (int K = 1; K <= nowLen; K++) nowNode = nowNode->next;//right position at list
 		if (nowLen == nSet) {
 			if (!tSet.empty()) {
 				bool tailFlag = false;
@@ -674,11 +753,29 @@ void nSearch(WordNode *now, int step) {
 					}
 				}
 				if (!tailFlag) {
+					nowLen--;
 					return;
 				}
 			}
 			nListNum++;
-			writeResult(2);
+			buffNum++;
+			if (isFull()) {
+				buffNum = 0;
+				writeResult(2);
+				for (auto& i : buffList) i->word = "";//init
+				WordNode* TnNode = nowList;
+				for (int i = 0; i < nSet; i++) {
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
+			else {
+				WordNode* TnNode = nowList;
+				for (int i = buffNum*nSet - nSet; i < buffNum*nSet; i++) {
+					buffList[i]->word = TnNode->word;
+					TnNode = TnNode->next;
+				}
+			}
 		}
 	}
 }
@@ -686,6 +783,11 @@ void nSearch(WordNode *now, int step) {
 bool isRepeat(WordTwo* n) {
 	if (n->Word1st->uFlag == false && n->Word2st->uFlag == false) return false;
 	return true;
+}
+
+bool isFull() {
+	if (2000 - buffNum < 1) return true;
+	return false;
 }
 
 int main(int argc, char* argv[]) {
@@ -699,6 +801,7 @@ int main(int argc, char* argv[]) {
 	}
 	/****************/
 	gen(inputFileName);
+	//gen("test_8.txt");
 	hSearch();
 	outfile.close();
 	/******对于-n，需要写入数字*******/

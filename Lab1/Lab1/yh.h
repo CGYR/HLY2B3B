@@ -85,14 +85,15 @@ WordNode* maxNode = NULL;
 WordNode* maxL = NULL;
 WordNode* maxN = NULL;
 WordNode* headNow = NULL;
-list<WordNode*> nList;
 WordNode* nowList = NULL;
 WordNode* nowNode = NULL;
+vector<WordNode*> buffList = {};
+int buffNum = 0;
 int nowLen = 0;
 int maxLen = 0;
 int nowNum = 0;
 int maxNum = 0;
-bool wcFlag = true;//判定最长词链方式：-w对应true（总数最多），-c对于false（字母数最多）
+bool wcFlag = false;//判定最长词链方式：-w对应true（总数最多），-c对于false（字母数最多）
 bool nFlag = false;//输出定长，优先级高于wcFlag
 int nListNum = 0;//-n对应的找到的单词的数目
 int nSet = 0;//-n对应的n值
@@ -100,7 +101,8 @@ string hSet = "";//限定头字母的集合
 string tSet = "";//限定尾字母的集合
 string inputFileName;
 time_t startTime = time(NULL);
-bool timeFlag = false;
+time_t timenow = 0;
+time_t timelim = 60;
 int step = 1;
 int wordSum[26] = { 0 };
 ofstream outfile; // 输出文件
@@ -113,3 +115,4 @@ void fSearch(int rank);
 void nSearch(WordNode*n, int step);
 void parseCommandLineEnter(int argc, char* argv[]);
 bool isRepeat(WordTwo* n);
+bool isFull();
