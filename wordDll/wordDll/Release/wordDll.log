@@ -1,0 +1,29 @@
+﻿  wordDll.cpp
+f:\hly2b3b\worddll\worddll\wordDll.h(70): warning C4251: “Core::buffList”: class“std::vector<WordNode *,std::allocator<_Ty>>”需要有 dll 接口由 class“Core”的客户端使用
+          with
+          [
+              _Ty=WordNode *
+          ]
+  f:\hly2b3b\worddll\worddll\wordDll.h(70): note: 参见“std::vector<WordNode *,std::allocator<_Ty>>”的声明
+          with
+          [
+              _Ty=WordNode *
+          ]
+f:\hly2b3b\worddll\worddll\wordDll.h(81): warning C4251: “Core::hSet”: class“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”需要有 dll 接口由 class“Core”的客户端使用
+  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xstring(2633): note: 参见“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”的声明
+f:\hly2b3b\worddll\worddll\wordDll.h(82): warning C4251: “Core::tSet”: class“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”需要有 dll 接口由 class“Core”的客户端使用
+  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xstring(2633): note: 参见“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”的声明
+f:\hly2b3b\worddll\worddll\wordDll.h(88): warning C4251: “Core::outfile”: class“std::basic_ofstream<char,std::char_traits<char>>”需要有 dll 接口由 class“Core”的客户端使用
+  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\iosfwd(691): note: 参见“std::basic_ofstream<char,std::char_traits<char>>”的声明
+f:\hly2b3b\worddll\worddll\wordDll.h(89): warning C4251: “Core::inputFilePath”: class“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”需要有 dll 接口由 class“Core”的客户端使用
+  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xstring(2633): note: 参见“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”的声明
+f:\hly2b3b\worddll\worddll\wordDll.h(90): warning C4251: “Core::outputFilePath”: class“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”需要有 dll 接口由 class“Core”的客户端使用
+  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xstring(2633): note: 参见“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”的声明
+    正在创建库 F:\HLY2B3B\wordDll\Release\wordDll.lib 和对象 F:\HLY2B3B\wordDll\Release\wordDll.exp
+  正在生成代码
+  11 of 414 functions ( 2.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  wordDll.vcxproj -> F:\HLY2B3B\wordDll\Release\wordDll.dll
+  wordDll.vcxproj -> F:\HLY2B3B\wordDll\Release\wordDll.pdb (Full PDB)

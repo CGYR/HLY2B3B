@@ -1,0 +1,4 @@
+﻿  testDLL.cpp
+f:\hly2b3b\worddll\testdll\testdll.cpp(6): fatal error C1083: 无法打开包括文件: “wordDll.h”: No such file or directory
+  stdafx.cpp
+  正在生成代码...

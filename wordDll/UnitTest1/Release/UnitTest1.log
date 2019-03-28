@@ -1,0 +1,9 @@
+﻿LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/LTCG”规范)
+    正在创建库 F:\HLY2B3B\wordDll\Release\UnitTest1.lib 和对象 F:\HLY2B3B\wordDll\Release\UnitTest1.exp
+  正在生成代码
+  0 of 249 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  UnitTest1.vcxproj -> F:\HLY2B3B\wordDll\Release\UnitTest1.dll
+  UnitTest1.vcxproj -> F:\HLY2B3B\wordDll\Release\UnitTest1.pdb (Full PDB)
